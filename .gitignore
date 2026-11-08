@@ -1,0 +1,21 @@
+# Environment files (never commit real credentials)
+.env
+.env.local
+
+# IDE / editor
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# PHP
+*.log
+vendor/
+
+# Temporary / build
+*.tmp
+*.bak
