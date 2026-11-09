@@ -53,13 +53,12 @@ $sb = new Supabase();
 <?php
 foreach (['success','error','warning','info'] as $type) {
     $msg = getFlash($type);
-    if ($msg): ?>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 fade-in
-            <?php echo $type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : '';
-            echo $type === 'error' ? 'bg-red-50 border-red-200 text-red-800' : '';
-            echo $type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : ''; ?>
-            border rounded-lg px-4 py-3 flex items-center gap-2" role="alert">
-            <i class="fa-solid <?php echo $type === 'success' ? 'fa-check-circle' : ($type === 'error' ? 'fa-circle-exclamation' : ($type === 'warning' ? 'fa-triangle-exclamation' : 'fa-info-circle')); }}"></i>
+    if ($msg) {
+        $cls = $type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : ($type === 'error' ? 'bg-red-50 border-red-200 text-red-800' : ($type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : ''));
+        $icon = $type === 'success' ? 'fa-check-circle' : ($type === 'error' ? 'fa-circle-exclamation' : ($type === 'warning' ? 'fa-triangle-exclamation' : 'fa-info-circle'));
+?>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 fade-in <?php echo $cls; ?> border rounded-lg px-4 py-3 flex items-center gap-2" role="alert">
+            <i class="fa-solid <?php echo $icon; ?>"></i>
             <?php echo htmlspecialchars($msg); ?>
         </div>
 <?php
