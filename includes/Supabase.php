@@ -104,12 +104,12 @@ class Supabase {
 
         if ($error) {
             error_log("Supabase cURL error: $error");
-            return false;
+            return [];
         }
 
         if ($httpCode >= 400) {
             error_log("Supabase HTTP $httpCode for $method $url: $response");
-            return false;
+            return [];
         }
 
         if ($response === '' || $response === 'null') {
