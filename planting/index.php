@@ -64,8 +64,6 @@ if ($action === 'edit' && $id > 0) { $editRow = $sb->find('planting', $id, 'plan
 
 $statusOptions = ['Growing', 'Harvested', 'Failed'];
 ?>
-<h1 class="text-2xl font-bold text-gray-800 mb-6 fade-in">Planting Records</h1>
-
 <?php if ($action === 'create' || $action === 'edit'): ?>
     <div class="max-w-xl fade-in">
         <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6">

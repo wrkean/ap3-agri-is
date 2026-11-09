@@ -58,8 +58,6 @@ if ($action === 'edit' && $id > 0) { $editRow = $sb->find('crop', $id, 'crop_id'
 $catOptions = ['Cereal', 'Vegetable', 'Fruit', 'Legume', 'Root Crop'];
 $seasonOptions = ['Wet Season', 'Dry Season', 'Year Round'];
 ?>
-<h1 class="text-2xl font-bold text-gray-800 mb-6 fade-in">Crops</h1>
-
 <?php if ($action === 'create' || $action === 'edit'): ?>
     <div class="max-w-lg fade-in">
         <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6">
