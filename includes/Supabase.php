@@ -40,8 +40,8 @@ class Supabase {
      * Load key=value lines from .env into $_ENV if not already set.
      */
     private function loadEnv(): void {
-        $envFile = __DIR__ . '/../../.env';
-        $exampleFile = __DIR__ . '/../../.env.example';
+        $envFile = __DIR__ . '/../.env';
+        $exampleFile = __DIR__ . '/../.env.example';
         $file = file_exists($envFile) ? $envFile : ($exampleFile ?? null);
         if (!$file || !is_readable($file)) {
             return;
@@ -81,7 +81,16 @@ class Supabase {
         $url = $this->url . '/rest/v1/' . ltrim($path, '/');
 
         if ($query) {
-            $url .= '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+            $parts = [];
+            foreach ($query as $key => $value) {
+                if (is_int($key)) {
+                    // Raw filter string (already URL-encoded by the caller)
+                    $parts[] = $value;
+                } else {
+                    $parts[] = $key . '=' . $value;
+                }
+            }
+            $url .= '?' . implode('&', $parts);
         }
 
         $ch = curl_init();
