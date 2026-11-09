@@ -61,7 +61,7 @@ $navClass = function(string $key) use ($activeNav): string {
                     <span class="text-sm text-gray-600 hidden md:block">
                         <span class="bg-gray-100 px-2 py-0.5 rounded text-xs font-semibold uppercase"><?php echo strtoupper(currentUser()['role']); ?></span>
                     </span>
-                    <a href="logout.php" class="px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    <a href="/logout.php" class="px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-md"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
                 </div>
             </div>
         </div>
