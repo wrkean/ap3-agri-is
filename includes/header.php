@@ -20,6 +20,24 @@ $sb = new Supabase();
 </head>
 <body class="bg-gray-50 text-gray-900">
 
+<?php
+// Determine active nav item based on current request path
+$currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+$activeNav = 'dashboard';
+if (strpos($currentPath, '/farmers/') !== false) $activeNav = 'farmers';
+elseif (strpos($currentPath, '/farms/') !== false) $activeNav = 'farms';
+elseif (strpos($currentPath, '/crops/') !== false) $activeNav = 'crops';
+elseif (strpos($currentPath, '/planting/') !== false) $activeNav = 'planting';
+elseif (strpos($currentPath, '/harvest/') !== false) $activeNav = 'harvest';
+elseif (strpos($currentPath, '/reports/') !== false) $activeNav = 'reports';
+elseif ($currentPath === '/' || strpos($currentPath, 'index.php') !== false) $activeNav = 'dashboard';
+
+$navClass = function(string $key) use ($activeNav): string {
+    return $activeNav === $key
+        ? 'px-3 py-2 text-sm font-medium rounded-md bg-blue-50 text-blue-600'
+        : 'px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100';
+};
+?>
 <?php if (isLoggedIn()): ?>
     <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,14 +47,14 @@ $sb = new Supabase();
                     <span class="font-bold text-xl tracking-tight text-gray-800">AgriInfo<span class="text-blue-600">System</span></span>
                 </div>
                 <div class="hidden md:flex items-center gap-6">
-                    <a href="/index.php" class="px-3 py-2 text-sm font-medium rounded-md bg-blue-50 text-blue-600">Dashboard</a>
-                    <a href="/farmers/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Farmers</a>
-                    <a href="/farms/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Farms</a>
-                    <a href="/crops/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Crops</a>
-                    <a href="/planting/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Planting</a>
-                    <a href="/harvest/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Harvest</a>
+                    <a href="/index.php" class="<?php echo $navClass('dashboard'); ?>">Dashboard</a>
+                    <a href="/farmers/index.php" class="<?php echo $navClass('farmers'); ?>">Farmers</a>
+                    <a href="/farms/index.php" class="<?php echo $navClass('farms'); ?>">Farms</a>
+                    <a href="/crops/index.php" class="<?php echo $navClass('crops'); ?>">Crops</a>
+                    <a href="/planting/index.php" class="<?php echo $navClass('planting'); ?>">Planting</a>
+                    <a href="/harvest/index.php" class="<?php echo $navClass('harvest'); ?>">Harvest</a>
                     <?php if (isAdmin()): ?>
-                        <a href="/reports/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Reports</a>
+                        <a href="/reports/index.php" class="<?php echo $navClass('reports'); ?>">Reports</a>
                     <?php endif; ?>
                 </div>
                 <div class="flex items-center gap-3">
