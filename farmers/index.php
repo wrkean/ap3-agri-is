@@ -94,7 +94,7 @@ if ($action === 'edit' && $id > 0) {
 
 <?php if ($action === 'create' || $action === 'edit'): ?>
     <div class="max-w-lg fade-in">
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+        <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">
                 <?php echo $action === 'create' ? 'Add Farmer' : 'Edit Farmer'; ?>
             </h2>
@@ -141,7 +141,7 @@ if ($action === 'edit' && $id > 0) {
         </a>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row gap-4 items-end">
             <div class="relative w-full md:w-1/2">
                 <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>

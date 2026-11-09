@@ -31,7 +31,7 @@ $pageTitle = 'Dashboard';
 
 <!-- Summary Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8 fade-in">
-    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+    <div class="bg-white p-5 rounded-lg border border-gray-200">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm text-gray-500 uppercase font-semibold">Total Farmers</p>
@@ -42,7 +42,7 @@ $pageTitle = 'Dashboard';
             </div>
         </div>
     </div>
-    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+    <div class="bg-white p-5 rounded-lg border border-gray-200">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm text-gray-500 uppercase font-semibold">Total Farms</p>
@@ -53,7 +53,7 @@ $pageTitle = 'Dashboard';
             </div>
         </div>
     </div>
-    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+    <div class="bg-white p-5 rounded-lg border border-gray-200">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm text-gray-500 uppercase font-semibold">Total Crops</p>
@@ -64,7 +64,7 @@ $pageTitle = 'Dashboard';
             </div>
         </div>
     </div>
-    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+    <div class="bg-white p-5 rounded-lg border border-gray-200">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm text-gray-500 uppercase font-semibold">Planting Records</p>
@@ -75,7 +75,7 @@ $pageTitle = 'Dashboard';
             </div>
         </div>
     </div>
-    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+    <div class="bg-white p-5 rounded-lg border border-gray-200">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm text-gray-500 uppercase font-semibold">Harvest Records</p>
@@ -90,13 +90,13 @@ $pageTitle = 'Dashboard';
 
 <!-- Total Harvested Quantity + Status Chart -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 fade-in">
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <div class="bg-white p-6 rounded-lg border border-gray-200">
         <p class="text-sm text-gray-500 uppercase font-semibold mb-2">Total Harvested Quantity</p>
         <h2 class="text-3xl font-bold text-gray-900 mb-1"><?php echo number_format($totalHarvest, 2); ?> kg</h2>
         <p class="text-xs text-gray-500">Estimated value: <span class="font-semibold text-gray-700"><?php echo number_format($totalHarvest * 25, 2); ?> PHP</span> (avg ₱25/kg)</p>
     </div>
 
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <div class="bg-white p-6 rounded-lg border border-gray-200">
         <div class="flex justify-between items-start mb-4">
             <h3 class="font-semibold text-gray-800">Plantings by Status</h3>
         </div>
@@ -106,7 +106,7 @@ $pageTitle = 'Dashboard';
 
 <!-- Recent Records -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 fade-in">
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <div class="bg-white p-6 rounded-lg border border-gray-200">
         <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <i class="fa-solid fa-calendar-plus text-green-600"></i> Recent Plantings
         </h3>
@@ -142,7 +142,7 @@ $pageTitle = 'Dashboard';
         <?php endif; ?>
     </div>
 
-    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <div class="bg-white p-6 rounded-lg border border-gray-200">
         <h3 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <i class="fa-solid fa-wheat-awn text-amber-600"></i> Recent Harvests
         </h3>
@@ -193,7 +193,7 @@ $pageTitle = 'Dashboard';
         $shortcuts[] = ['href' => '/reports/index.php', 'icon' => 'fa-chart-bar', 'color' => 'bg-indigo-100 text-indigo-600', 'label' => 'Reports', 'desc' => 'View agricultural reports'];
     endif;
     foreach ($shortcuts as $s): ?>
-        <a href="<?php echo $s['href']; ?>" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white hover:bg-gray-50 hover:shadow-md transition">
+        <a href="<?php echo $s['href']; ?>" class="group flex items-center gap-3 p-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition">
             <div class="<?php echo $s['color']; ?> w-10 h-10 rounded-lg flex items-center justify-center group-hover:scale-110 transition">
                 <i class="fa-solid <?php echo $s['icon']; ?>"></i>
             </div>

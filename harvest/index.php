@@ -63,7 +63,7 @@ $gradeOptions = ['Grade A', 'Grade B', 'Grade C'];
 
 <?php if ($action === 'create' || $action === 'edit'): ?>
     <div class="max-w-xl fade-in">
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+        <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4"><?php echo $action === 'create' ? 'Add Harvest Record' : 'Edit Harvest Record'; ?></h2>
             <form method="POST" action="index.php?action=<?php echo $action; ?><?php echo $id > 0 ? '&id=' . $id : ''; ?>" class="space-y-4">
                 <input type="hidden" name="action" value="<?php echo $action; ?>">
@@ -128,7 +128,7 @@ $gradeOptions = ['Grade A', 'Grade B', 'Grade C'];
         <a href="index.php?action=create" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition flex items-center gap-2"><i class="fa-solid fa-plus"></i> Add Record</a>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row gap-4 items-end">
             <div class="relative w-full md:w-1/3">
                 <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
