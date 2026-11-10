@@ -10,22 +10,28 @@
 
 session_start();
 
-const USERS = [
-    [
-        'id'       => 1,
-        'email'    => 'admin@example.com',
-        'password' => password_hash('admin123', PASSWORD_DEFAULT),
-        'role'     => 'administrator',
-        'name'     => 'System Administrator',
-    ],
-    [
-        'id'       => 2,
-        'email'    => 'staff@example.com',
-        'password' => password_hash('staff123', PASSWORD_DEFAULT),
-        'role'     => 'staff',
-        'name'     => 'Staff User',
-    ],
-];
+function getUsers(): array {
+    static $users = null;
+    if ($users === null) {
+        $users = [
+            [
+                'id'       => 1,
+                'email'    => 'admin@example.com',
+                'password' => password_hash('admin123', PASSWORD_DEFAULT),
+                'role'     => 'administrator',
+                'name'     => 'System Administrator',
+            ],
+            [
+                'id'       => 2,
+                'email'    => 'staff@example.com',
+                'password' => password_hash('staff123', PASSWORD_DEFAULT),
+                'role'     => 'staff',
+                'name'     => 'Staff User',
+            ],
+        ];
+    }
+    return $users;
+}
 
 function isLoggedIn(): bool {
     return !empty($_SESSION['user_id']);
@@ -45,7 +51,7 @@ function isAdmin(): bool {
 }
 
 function login(string $email, string $password): bool {
-    foreach (USERS as $u) {
+    foreach (getUsers() as $u) {
         if ($u['email'] === $email && password_verify($password, $u['password'])) {
             $_SESSION['user_id']    = $u['id'];
             $_SESSION['user_email'] = $u['email'];
