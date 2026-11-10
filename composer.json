@@ -18,6 +18,10 @@
     },
     "scripts": {
         "serve": "php -S localhost:8000",
+        "test": "phpunit",
+        "test:unit": "phpunit --testsuite Unit",
+        "test:integration": "phpunit --testsuite Integration",
+        "test:coverage": "phpunit --coverage-text",
         "docs": "doxygen Doxyfile",
         "format": "php-cs-fixer fix",
         "format:check": "php-cs-fixer fix --dry-run --diff"
