@@ -29,14 +29,14 @@ $sb = new Supabase();
                     <span class="font-bold text-xl tracking-tight text-gray-800">AgriInfo<span class="text-blue-600">System</span></span>
                 </div>
                 <div class="hidden md:flex items-center gap-6">
-                    <a href="index.php" class="px-3 py-2 text-sm font-medium rounded-md bg-blue-50 text-blue-600">Dashboard</a>
-                    <a href="farmers/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Farmers</a>
-                    <a href="farms/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Farms</a>
-                    <a href="crops/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Crops</a>
-                    <a href="planting/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Planting</a>
-                    <a href="harvest/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Harvest</a>
+                    <a href="/index.php" class="px-3 py-2 text-sm font-medium rounded-md bg-blue-50 text-blue-600">Dashboard</a>
+                    <a href="/farmers/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Farmers</a>
+                    <a href="/farms/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Farms</a>
+                    <a href="/crops/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Crops</a>
+                    <a href="/planting/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Planting</a>
+                    <a href="/harvest/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Harvest</a>
                     <?php if (isAdmin()): ?>
-                        <a href="reports/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Reports</a>
+                        <a href="/reports/index.php" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100">Reports</a>
                     <?php endif; ?>
                 </div>
                 <div class="flex items-center gap-3">

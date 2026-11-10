@@ -183,14 +183,14 @@ $pageTitle = 'Dashboard';
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 fade-in">
     <?php
     $shortcuts = [
-        ['href' => 'farmers/index.php', 'icon' => 'fa-users', 'color' => 'bg-blue-100 text-blue-600', 'label' => 'Manage Farmers', 'desc' => 'Add, edit, view farmers'],
-        ['href' => 'farms/index.php',   'icon' => 'fa-seedling', 'color' => 'bg-purple-100 text-purple-600', 'label' => 'Manage Farms', 'desc' => 'Farm locations & details'],
-        ['href' => 'crops/index.php',   'icon' => 'fa-carrot', 'color' => 'bg-green-100 text-green-600', 'label' => 'Manage Crops', 'desc' => 'Crop catalog & varieties'],
-        ['href' => 'planting/index.php','icon' => 'fa-calendar-check','color' => 'bg-orange-100 text-orange-600', 'label' => 'Planting Records', 'desc' => 'Track planting cycles'],
-        ['href' => 'harvest/index.php', 'icon' => 'fa-wheat-awn','color' => 'bg-red-100 text-red-600', 'label' => 'Harvest Records', 'desc' => 'Record harvests & quality'],
+        ['href' => '/farmers/index.php', 'icon' => 'fa-users', 'color' => 'bg-blue-100 text-blue-600', 'label' => 'Manage Farmers', 'desc' => 'Add, edit, view farmers'],
+        ['href' => '/farms/index.php',   'icon' => 'fa-seedling', 'color' => 'bg-purple-100 text-purple-600', 'label' => 'Manage Farms', 'desc' => 'Farm locations & details'],
+        ['href' => '/crops/index.php',   'icon' => 'fa-carrot', 'color' => 'bg-green-100 text-green-600', 'label' => 'Manage Crops', 'desc' => 'Crop catalog & varieties'],
+        ['href' => '/planting/index.php','icon' => 'fa-calendar-check','color' => 'bg-orange-100 text-orange-600', 'label' => 'Planting Records', 'desc' => 'Track planting cycles'],
+        ['href' => '/harvest/index.php', 'icon' => 'fa-wheat-awn','color' => 'bg-red-100 text-red-600', 'label' => 'Harvest Records', 'desc' => 'Record harvests & quality'],
     ];
     if (isAdmin()):
-        $shortcuts[] = ['href' => 'reports/index.php', 'icon' => 'fa-chart-bar', 'color' => 'bg-indigo-100 text-indigo-600', 'label' => 'Reports', 'desc' => 'View agricultural reports'];
+        $shortcuts[] = ['href' => '/reports/index.php', 'icon' => 'fa-chart-bar', 'color' => 'bg-indigo-100 text-indigo-600', 'label' => 'Reports', 'desc' => 'View agricultural reports'];
     endif;
     foreach ($shortcuts as $s): ?>
         <a href="<?php echo $s['href']; ?>" class="group flex items-center gap-3 p-4 rounded-xl border border-gray-100 bg-white hover:bg-gray-50 hover:shadow-md transition">
