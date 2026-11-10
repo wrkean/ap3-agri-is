@@ -20,6 +20,9 @@ vendor/
 node_modules/
 package-lock.json
 
+# Doxygen generated output
+docs/doxygen/
+
 # Temporary / build
 *.tmp
 *.bak
