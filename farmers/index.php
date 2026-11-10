@@ -177,6 +177,7 @@ if ($action === 'edit' && $id > 0) {
                     $search,
                 ); ?>" placeholder="Search by name or address..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
             </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition flex items-center gap-2"><i class="fa-solid fa-search"></i> Search</button>
             <div class="flex gap-2">
                 <a href="index.php?search=<?php echo rawurlencode(
                     $search,
