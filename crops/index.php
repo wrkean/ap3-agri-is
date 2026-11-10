@@ -3,7 +3,7 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/crud.php';
 requireAuth();
 
-$sb = new Supabase();
+$sb = new Database();
 $action = $_GET['action'] ?? 'list';
 $id = (int)($_GET['id'] ?? 0);
 
