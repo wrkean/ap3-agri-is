@@ -2,7 +2,7 @@
 require_once __DIR__ . '/includes/header.php';
 requireAuth();
 
-$sb = new Supabase();
+$sb = new Database();
 
 // Summary counts
 $counts = [

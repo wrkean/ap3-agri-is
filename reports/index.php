@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/crud.php';
 requireAuth();
 requireAdmin();
 
-$sb = new Supabase();
+$sb = new Database();
 $pageTitle = 'Reports';
 
 // Report filters
