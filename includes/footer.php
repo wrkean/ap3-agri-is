@@ -14,6 +14,7 @@
 <?php endif; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="/js/live-search.js"></script>
 <script>
     document.querySelectorAll('[data-confirm]').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
