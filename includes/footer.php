@@ -3,7 +3,9 @@
 
     <footer class="border-t border-gray-200 bg-white mt-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-gray-500">
-            <p>&copy; <?php echo date('Y'); ?> Agriculture Information System — Cebu Technological University, Cebu City</p>
+            <p>&copy; <?php echo date(
+                'Y',
+            ); ?> Agriculture Information System — Cebu Technological University, Cebu City</p>
             <p>PHP + Tailwind CSS + Supabase PostgreSQL</p>
         </div>
     </footer>

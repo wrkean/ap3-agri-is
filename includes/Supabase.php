@@ -13,15 +13,17 @@
  *   $sb->delete('crop', 'crop_id=eq.1');
  */
 
-class Supabase {
+class Supabase
+{
     private string $url;
     private string $anonKey;
     private array $headers;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->loadEnv();
-        $this->url = rtrim($_ENV['SUPABASE_URL'] ?? getenv('SUPABASE_URL') ?? '', '/');
-        $this->anonKey = $_ENV['SUPABASE_ANON_KEY'] ?? getenv('SUPABASE_ANON_KEY') ?? '';
+        $this->url = rtrim($_ENV['SUPABASE_URL'] ?? (getenv('SUPABASE_URL') ?? ''), '/');
+        $this->anonKey = $_ENV['SUPABASE_ANON_KEY'] ?? (getenv('SUPABASE_ANON_KEY') ?? '');
 
         if (empty($this->url) || empty($this->anonKey)) {
             // Don't die here; let the caller handle missing credentials gracefully.
@@ -39,10 +41,11 @@ class Supabase {
     /**
      * Load key=value lines from .env into $_ENV if not already set.
      */
-    private function loadEnv(): void {
+    private function loadEnv(): void
+    {
         $envFile = __DIR__ . '/../.env';
         $exampleFile = __DIR__ . '/../.env.example';
-        $file = file_exists($envFile) ? $envFile : ($exampleFile ?? null);
+        $file = file_exists($envFile) ? $envFile : $exampleFile ?? null;
         if (!$file || !is_readable($file)) {
             return;
         }
@@ -77,7 +80,8 @@ class Supabase {
      * @param array|null $body  JSON body for POST/PATCH
      * @return array|false Decoded JSON response, or false on error
      */
-    public function request(string $method, string $path, array $query = null, array $body = null) {
+    public function request(string $method, string $path, array $query = null, array $body = null)
+    {
         $url = $this->url . '/rest/v1/' . ltrim($path, '/');
 
         if ($query) {
@@ -130,28 +134,33 @@ class Supabase {
     }
 
     /** SELECT rows from a table. */
-    public function select(string $table, string $columns = '*', array $filters = [], array $options = []) {
+    public function select(string $table, string $columns = '*', array $filters = [], array $options = [])
+    {
         $query = array_merge(['select' => $columns], $filters, $options);
         return $this->request('GET', $table, $query);
     }
 
     /** INSERT a row. Returns the inserted row(s). */
-    public function insert(string $table, array $data) {
+    public function insert(string $table, array $data)
+    {
         return $this->request('POST', $table, null, $data);
     }
 
     /** UPDATE rows matching filters. Returns updated row(s). */
-    public function update(string $table, array $data, array $filters) {
+    public function update(string $table, array $data, array $filters)
+    {
         return $this->request('PATCH', $table, $filters, $data);
     }
 
     /** DELETE rows matching filters. */
-    public function delete(string $table, array $filters) {
+    public function delete(string $table, array $filters)
+    {
         return $this->request('DELETE', $table, $filters);
     }
 
     /** Get a single row by primary key. */
-    public function find(string $table, int $id, string $pk = 'id') {
+    public function find(string $table, int $id, string $pk = 'id')
+    {
         $rows = $this->select($table, '*', ["$pk=eq.$id"], ['limit' => 1]);
         return $rows[0] ?? null;
     }

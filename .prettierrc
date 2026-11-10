@@ -1,0 +1,8 @@
+{
+  "plugins": ["@prettier/plugin-php", "prettier-plugin-tailwindcss"],
+  "phpVersion": "8.2",
+  "printWidth": 120,
+  "tabWidth": 4,
+  "singleQuote": true,
+  "trailingComma": "none"
+}

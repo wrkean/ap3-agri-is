@@ -1,0 +1,1 @@
+{"name":"ap3-agri-system","version":"1.0.0","private":true,"scripts":{"format":"prettier --write \"**/*.php\"","format:check":"prettier --check \"**/*.php\""},"devDependencies":{"@prettier/plugin-php":"^0.26.0","prettier":"^3.0.0","prettier-plugin-tailwindcss":"^0.6.0"}}

@@ -6,13 +6,21 @@ $sb = new Database();
 // Determine active nav item based on current request path
 $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 $activeNav = 'dashboard';
-if (strpos($currentPath, '/farmers/') !== false) $activeNav = 'farmers';
-elseif (strpos($currentPath, '/farms/') !== false) $activeNav = 'farms';
-elseif (strpos($currentPath, '/crops/') !== false) $activeNav = 'crops';
-elseif (strpos($currentPath, '/planting/') !== false) $activeNav = 'planting';
-elseif (strpos($currentPath, '/harvest/') !== false) $activeNav = 'harvest';
-elseif (strpos($currentPath, '/reports/') !== false) $activeNav = 'reports';
-elseif ($currentPath === '/' || strpos($currentPath, 'index.php') !== false) $activeNav = 'dashboard';
+if (strpos($currentPath, '/farmers/') !== false) {
+    $activeNav = 'farmers';
+} elseif (strpos($currentPath, '/farms/') !== false) {
+    $activeNav = 'farms';
+} elseif (strpos($currentPath, '/crops/') !== false) {
+    $activeNav = 'crops';
+} elseif (strpos($currentPath, '/planting/') !== false) {
+    $activeNav = 'planting';
+} elseif (strpos($currentPath, '/harvest/') !== false) {
+    $activeNav = 'harvest';
+} elseif (strpos($currentPath, '/reports/') !== false) {
+    $activeNav = 'reports';
+} elseif ($currentPath === '/' || strpos($currentPath, 'index.php') !== false) {
+    $activeNav = 'dashboard';
+}
 
 $navClass = function (string $key) use ($activeNav): string {
     $base = 'px-3 py-2 text-sm font-medium rounded-md transition-colors';
@@ -24,9 +32,9 @@ $navClass = function (string $key) use ($activeNav): string {
 // Flash message config
 $flashConfig = [
     'success' => ['bg-green-50 border-green-200 text-green-800', 'fa-check-circle text-green-600'],
-    'error'   => ['bg-red-50 border-red-200 text-red-800', 'fa-circle-exclamation text-red-600'],
+    'error' => ['bg-red-50 border-red-200 text-red-800', 'fa-circle-exclamation text-red-600'],
     'warning' => ['bg-amber-50 border-amber-200 text-amber-800', 'fa-triangle-exclamation text-amber-600'],
-    'info'    => ['bg-blue-50 border-blue-200 text-blue-800', 'fa-info-circle text-blue-600'],
+    'info' => ['bg-blue-50 border-blue-200 text-blue-800', 'fa-info-circle text-blue-600'],
 ];
 ?>
 <!DOCTYPE html>
@@ -74,8 +82,12 @@ $flashConfig = [
                         <span class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-xs font-semibold text-gray-700">
                             <?php echo strtoupper(substr(currentUser()['name'] ?? 'U', 0, 1)); ?>
                         </span>
-                        <span class="hidden lg:inline"><?php echo htmlspecialchars(currentUser()['name'] ?? ''); ?></span>
-                        <span class="text-xs font-medium uppercase text-gray-400"><?php echo htmlspecialchars(currentUser()['role'] ?? ''); ?></span>
+                        <span class="hidden lg:inline"><?php echo htmlspecialchars(
+                            currentUser()['name'] ?? '',
+                        ); ?></span>
+                        <span class="text-xs font-medium uppercase text-gray-400"><?php echo htmlspecialchars(
+                            currentUser()['role'] ?? '',
+                        ); ?></span>
                     </span>
                     <a href="/logout.php" class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors">
                         <i class="fa-solid fa-right-from-bracket"></i>
@@ -87,12 +99,10 @@ $flashConfig = [
     </header>
 <?php endif; ?>
 
-<?php
-foreach (['success', 'error', 'warning', 'info'] as $type) {
+<?php foreach (['success', 'error', 'warning', 'info'] as $type) {
     $msg = getFlash($type);
     if ($msg) {
-        [$cls, $iconCls] = $flashConfig[$type];
-?>
+        [$cls, $iconCls] = $flashConfig[$type]; ?>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 fade-in" role="alert">
             <div class="flex items-start gap-3 px-4 py-3 rounded-lg border <?php echo $cls; ?>">
                 <i class="fa-solid <?php echo $iconCls; ?> mt-0.5"></i>
@@ -101,8 +111,7 @@ foreach (['success', 'error', 'warning', 'info'] as $type) {
         </div>
 <?php
     }
-}
-?>
+} ?>
 
 <?php if (isLoggedIn()): ?>
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
