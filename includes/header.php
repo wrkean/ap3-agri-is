@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/Supabase.php';
-$sb = new Supabase();
+require_once __DIR__ . '/Database.php';
+$sb = new Database();
 
 // Determine active nav item based on current request path
 $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
