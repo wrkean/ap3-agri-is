@@ -20,28 +20,39 @@ dashboard visualization.
 
 ## Setup
 
-### 1. Supabase
+The app supports **two database backends** and auto-detects which to use:
+
+### Option A: SQLite (no setup required — default)
+
+A pre-built SQLite database is included at `database/agri.db`. Just run:
+
+```bash
+php -S localhost:8000
+```
+
+Then open http://localhost:8000 in your browser. Login with `admin@example.com` / `admin123`.
+
+To rebuild the SQLite database from scratch:
+
+```bash
+php database/build_sqlite.php
+```
+
+### Option B: Supabase PostgreSQL
 
 Follow the detailed instructions in `~/Documents/supabase-setup-ap3.md` to:
 - Create a Supabase project
-- Run the schema SQL (tables, constraints, lookup data, sample data)
+- Run `database/schema.sql` in the Supabase SQL Editor
 - Get your Project URL and anon key
 
-### 2. Environment
+Then create your `.env` file:
 
 ```bash
 cp .env.example .env
 # Edit .env and paste your Supabase URL and anon key
 ```
 
-### 3. Run the app
-
-```bash
-# From the project root
-php -S localhost:8000
-```
-
-Then open http://localhost:8000 in your browser.
+The app will automatically use Supabase when `.env` is configured. Otherwise it falls back to SQLite.
 
 ## Credentials (demo)
 
