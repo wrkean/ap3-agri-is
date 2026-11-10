@@ -134,8 +134,8 @@ $irrOptions = ['Rainfed', 'Irrigated', 'Drip Irrigation'];
                 </select>
             </div>
             <div class="flex gap-2">
-                <a href="index.php?search=<?php echo rawurlencode($search); ?>&irrigation=<?php echo rawurlencode($irrFilter); ?>&sort=farm_id&dir=asc" class="px-4 py-2 bg-blue-50 text-blue-600 text-sm font-medium rounded hover:bg-blue-100 transition">Sort by ID</a>
-                <a href="index.php?search=<?php echo rawurlencode($search); ?>&irrigation=<?php echo rawurlencode($irrFilter); ?>&sort=farm_name&dir=asc" class="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded hover:bg-gray-50 transition">Sort by Name</a>
+                <a href="index.php?search=<?php echo rawurlencode($search); ?>&irrigation=<?php echo rawurlencode($irrFilter); ?>&sort=farm_id&dir=asc" class="px-4 py-2 text-sm font-medium rounded transition <?php echo $sort === 'farm_id' ? 'bg-blue-50 text-blue-600' : 'border border-gray-200 text-gray-700 hover:bg-gray-50'; ?>">Sort by ID</a>
+                <a href="index.php?search=<?php echo rawurlencode($search); ?>&irrigation=<?php echo rawurlencode($irrFilter); ?>&sort=farm_name&dir=asc" class="px-4 py-2 text-sm font-medium rounded transition <?php echo $sort === 'farm_name' ? 'bg-blue-50 text-blue-600' : 'border border-gray-200 text-gray-700 hover:bg-gray-50'; ?>">Sort by Name</a>
             </div>
         </div>
 

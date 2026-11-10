@@ -146,8 +146,8 @@ if ($action === 'edit' && $id > 0) {
                 <input type="text" id="searchInput" name="search" value="<?php echo e($search); ?>" placeholder="Search by name or address..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
             </div>
             <div class="flex gap-2">
-                <a href="index.php?search=<?php echo rawurlencode($search); ?>&sort=farmer_id&dir=asc" class="px-4 py-2 bg-blue-50 text-blue-600 text-sm font-medium rounded hover:bg-blue-100 transition">Sort by ID</a>
-                <a href="index.php?search=<?php echo rawurlencode($search); ?>&sort=first_name&dir=asc" class="px-4 py-2 border border-gray-200 text-gray-700 text-sm font-medium rounded hover:bg-gray-50 transition">Sort by Name</a>
+                <a href="index.php?search=<?php echo rawurlencode($search); ?>&sort=farmer_id&dir=asc" class="px-4 py-2 text-sm font-medium rounded transition <?php echo $sort === 'farmer_id' ? 'bg-blue-50 text-blue-600' : 'border border-gray-200 text-gray-700 hover:bg-gray-50'; ?>">Sort by ID</a>
+                <a href="index.php?search=<?php echo rawurlencode($search); ?>&sort=first_name&dir=asc" class="px-4 py-2 text-sm font-medium rounded transition <?php echo $sort === 'first_name' ? 'bg-blue-50 text-blue-600' : 'border border-gray-200 text-gray-700 hover:bg-gray-50'; ?>">Sort by Name</a>
             </div>
         </div>
 
