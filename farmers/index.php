@@ -3,7 +3,9 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/crud.php';
 requireAuth();
 
-$sb = new Database();
+$db = new Database();
+$farmerModel = new Farmer($db);
+$farmModel = new Farm($db);
 $action = $_GET['action'] ?? 'list';
 $id = (int) ($_GET['id'] ?? 0);
 $error = '';
@@ -40,12 +42,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'create') {
-        $sb->insert('farmer', $data);
+        $farmerModel->create($data);
         flash('success', 'Farmer created successfully.');
         header('Location: farmers/index.php');
         exit();
     } elseif ($action === 'edit' && $id > 0) {
-        $sb->update('farmer', $data, ['farmer_id=eq.' . $id]);
+        $farmerModel->update($id, $data);
         flash('success', 'Farmer updated successfully.');
         header('Location: farmers/index.php');
         exit();
@@ -54,11 +56,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Handle delete
 if ($action === 'delete' && $id > 0) {
-    $farms = $sb->select('farm', 'farm_id', ['farmer_id=eq.' . $id]);
+    $farms = $farmModel->byFarmer($id);
     if (!empty($farms)) {
         flash('error', 'Cannot delete farmer: has associated farm records.');
     } else {
-        $sb->delete('farmer', ['farmer_id=eq.' . $id]);
+        $farmerModel->delete($id);
         flash('success', 'Farmer deleted successfully.');
     }
     header('Location: farmers/index.php');
@@ -83,13 +85,11 @@ if ($search !== '') {
 }
 
 // Get count for pagination
-$countRows = $sb->select('farmer', 'farmer_id', $filters);
+$countRows = $farmerModel->all($filters);
 $total = count($countRows);
 $p = pagination($page, $total);
 
-$rows = $sb->select(
-    'farmer',
-    '*',
+$rows = $farmerModel->all(
     $filters,
     [
         'order' => $sort . '.' . $dir,
@@ -101,7 +101,7 @@ $rows = $sb->select(
 // Edit form data
 $editRow = null;
 if ($action === 'edit' && $id > 0) {
-    $editRow = $sb->find('farmer', $id, 'farmer_id');
+    $editRow = $farmerModel->find($id);
 }
 ?>
 <?php if ($action === 'create' || $action === 'edit'): ?>

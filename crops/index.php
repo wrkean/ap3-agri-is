@@ -3,7 +3,8 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/crud.php';
 requireAuth();
 
-$sb = new Database();
+$db = new Database();
+$cropModel = new Crop($db);
 $action = $_GET['action'] ?? 'list';
 $id = (int) ($_GET['id'] ?? 0);
 
@@ -37,13 +38,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
     if ($action === 'create') {
-        $sb->insert('crop', $data);
+        $cropModel->create($data);
         flash('success', 'Crop created.');
         header('Location: crops/index.php');
         exit();
     }
     if ($action === 'edit' && $id > 0) {
-        $sb->update('crop', $data, ['crop_id=eq.' . $id]);
+        $cropModel->update($id, $data);
         flash('success', 'Crop updated.');
         header('Location: crops/index.php');
         exit();
@@ -51,11 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($action === 'delete' && $id > 0) {
-    $plantings = $sb->select('planting', 'planting_id', ['crop_id=eq.' . $id]);
+    $plantings = $db->select('planting', 'planting_id', ['crop_id=eq.' . $id]);
     if (!empty($plantings)) {
         flash('error', 'Cannot delete crop: has planting records.');
     } else {
-        $sb->delete('crop', ['crop_id=eq.' . $id]);
+        $cropModel->delete($id);
         flash('success', 'Crop deleted.');
     }
     header('Location: crops/index.php');
@@ -86,18 +87,17 @@ if ($seasonFilter !== '') {
     $filters[] = 'recommended_season=eq.' . rawurlencode($seasonFilter);
 }
 
-$countRows = $sb->select('crop', 'crop_id', $filters);
+$countRows = $db->select('crop', 'crop_id', $filters);
 $total = count($countRows);
 $p = pagination($page, $total);
-$rows = $sb->select(
-    'crop',
-    '*',
-    $filters, ['order' => $sort . '.' . $dir, 'limit' => $p['limit'], 'offset' => $p['offset']],
+$rows = $cropModel->all(
+    $filters,
+    ['order' => $sort . '.' . $dir, 'limit' => $p['limit'], 'offset' => $p['offset']],
 );
 
 $editRow = null;
 if ($action === 'edit' && $id > 0) {
-    $editRow = $sb->find('crop', $id, 'crop_id');
+    $editRow = $cropModel->find($id);
 }
 
 $catOptions = ['Cereal', 'Vegetable', 'Fruit', 'Legume', 'Root Crop'];

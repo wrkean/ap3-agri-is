@@ -2,6 +2,7 @@
 // api/search.php — JSON search endpoint for live search / auto-suggest
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/Database.php';
+require_once __DIR__ . '/../includes/models.php';
 
 // Only allow authenticated users
 if (!isLoggedIn()) {
@@ -20,12 +21,17 @@ if (empty($module) || empty($query)) {
     exit;
 }
 
-$sb = new Database();
+$db = new Database();
+$farmerModel = new Farmer($db);
+$farmModel = new Farm($db);
+$cropModel = new Crop($db);
+$plantingModel = new Planting($db);
+$harvestModel = new Harvest($db);
 $results = [];
 
 switch ($module) {
     case 'farmers':
-        $rows = $sb->select('farmer', 'farmer_id,first_name,last_name,address', [], ['limit' => 100]);
+        $rows = $farmerModel->all([], ['limit' => 100]);
         foreach ($rows as $r) {
             $name = $r['first_name'] . ' ' . $r['last_name'];
             if (stripos($name, $query) !== false || stripos($r['address'] ?? '', $query) !== false) {
@@ -34,7 +40,7 @@ switch ($module) {
         }
         break;
     case 'farms':
-        $rows = $sb->select('farm', 'farm_id,farm_name,location', [], ['limit' => 100]);
+        $rows = $farmModel->all([], ['limit' => 100]);
         foreach ($rows as $r) {
             if (stripos($r['farm_name'], $query) !== false || stripos($r['location'] ?? '', $query) !== false) {
                 $results[] = ['id' => $r['farm_id'], 'label' => $r['farm_name'], 'sub' => $r['location'] ?? ''];
@@ -42,7 +48,7 @@ switch ($module) {
         }
         break;
     case 'crops':
-        $rows = $sb->select('crop', 'crop_id,crop_name,variety,crop_category', [], ['limit' => 100]);
+        $rows = $cropModel->all([], ['limit' => 100]);
         foreach ($rows as $r) {
             if (stripos($r['crop_name'], $query) !== false || stripos($r['variety'] ?? '', $query) !== false) {
                 $results[] = ['id' => $r['crop_id'], 'label' => $r['crop_name'], 'sub' => $r['variety'] . ' (' . $r['crop_category'] . ')'];
@@ -50,7 +56,7 @@ switch ($module) {
         }
         break;
     case 'planting':
-        $rows = $sb->select('planting', '*,farm(farm_name),crop(crop_name)', [], ['limit' => 100]);
+        $rows = $plantingModel->all([], ['limit' => 100]);
         foreach ($rows as $r) {
             $label = '#' . $r['planting_id'] . ' — ' . ($r['farm']['farm_name'] ?? '?') . ' / ' . ($r['crop']['crop_name'] ?? '?');
             if (stripos($label, $query) !== false || stripos($r['status'] ?? '', $query) !== false) {
@@ -59,7 +65,7 @@ switch ($module) {
         }
         break;
     case 'harvest':
-        $rows = $sb->select('harvest', '*,planting(planting_id,farm(farm_name),crop(crop_name))', [], ['limit' => 100]);
+        $rows = $harvestModel->all([], ['limit' => 100]);
         foreach ($rows as $r) {
             $label = '#' . $r['harvest_id'] . ' — ' . ($r['planting']['farm']['farm_name'] ?? '?') . ' / ' . ($r['planting']['crop']['crop_name'] ?? '?');
             if (stripos($label, $query) !== false || stripos($r['quality_grade'] ?? '', $query) !== false) {

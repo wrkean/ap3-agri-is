@@ -3,7 +3,9 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/crud.php';
 requireAuth();
 
-$sb = new Database();
+$db = new Database();
+$farmModel = new Farm($db);
+$farmerModel = new Farmer($db);
 $action = $_GET['action'] ?? 'list';
 $id = (int) ($_GET['id'] ?? 0);
 
@@ -42,13 +44,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
     if ($action === 'create') {
-        $sb->insert('farm', $data);
+        $farmModel->create($data);
         flash('success', 'Farm created.');
         header('Location: farms/index.php');
         exit();
     }
     if ($action === 'edit' && $id > 0) {
-        $sb->update('farm', $data, ['farm_id=eq.' . $id]);
+        $farmModel->update($id, $data);
         flash('success', 'Farm updated.');
         header('Location: farms/index.php');
         exit();
@@ -56,11 +58,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($action === 'delete' && $id > 0) {
-    $plantings = $sb->select('planting', 'planting_id', ['farm_id=eq.' . $id]);
+    $plantings = $db->select('planting', 'planting_id', ['farm_id=eq.' . $id]);
     if (!empty($plantings)) {
         flash('error', 'Cannot delete farm: has planting records.');
     } else {
-        $sb->delete('farm', ['farm_id=eq.' . $id]);
+        $farmModel->delete($id);
         flash('success', 'Farm deleted.');
     }
     header('Location: farms/index.php');
@@ -70,7 +72,7 @@ if ($action === 'delete' && $id > 0) {
 $pageTitle = 'Farms';
 
 // Fetch farmers for dropdown
-$farmers = $sb->select('farmer', 'farmer_id,first_name,last_name');
+$farmers = $farmerModel->all();
 
 // Search/filter/sort/pagination
 $search = trim($_GET['search'] ?? '');
@@ -91,19 +93,18 @@ if ($irrFilter !== '') {
     $filters[] = 'irrigation_type=eq.' . rawurlencode($irrFilter);
 }
 
-$countRows = $sb->select('farm', 'farm_id', $filters);
+$countRows = $db->select('farm', 'farm_id', $filters);
 $total = count($countRows);
 $p = pagination($page, $total);
-$rows = $sb->select(
-    'farm',
-    '*,farmer(first_name,last_name)',
-    $filters, ['order' => $sort . '.' . $dir, 'limit' => $p['limit'], 'offset' => $p['offset']],
+$rows = $farmModel->all(
+    $filters,
+    ['order' => $sort . '.' . $dir, 'limit' => $p['limit'], 'offset' => $p['offset']],
 );
 
 // Edit row
 $editRow = null;
 if ($action === 'edit' && $id > 0) {
-    $editRow = $sb->find('farm', $id, 'farm_id');
+    $editRow = $farmModel->find($id);
 }
 
 // Irrigation options for dropdown

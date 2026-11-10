@@ -2,40 +2,37 @@
 require_once __DIR__ . '/includes/header.php';
 requireAuth();
 
-$sb = new Database();
+$db = new Database();
+$farmerModel = new Farmer($db);
+$farmModel = new Farm($db);
+$cropModel = new Crop($db);
+$plantingModel = new Planting($db);
+$harvestModel = new Harvest($db);
 
 // Summary counts
 $counts = [
-    'farmers' => count($sb->select('farmer', 'farmer_id')),
-    'farms' => count($sb->select('farm', 'farm_id')),
-    'crops' => count($sb->select('crop', 'crop_id')),
-    'planting' => count($sb->select('planting', 'planting_id')),
-    'harvest' => count($sb->select('harvest', 'harvest_id')),
+    'farmers' => $farmerModel->count(),
+    'farms' => $farmModel->count(),
+    'crops' => $cropModel->count(),
+    'planting' => $plantingModel->count(),
+    'harvest' => $harvestModel->count(),
 ];
 
 // Recent records
-$recentPlanting = $sb->select(
-    'planting',
-    '*,farm(farm_name),crop(crop_name)',
+$recentPlanting = $plantingModel->all(
     [],
     ['limit' => 5, 'order' => 'planting_id.desc'],
 );
-$recentHarvest = $sb->select(
-    'harvest',
-    '*,planting(planting_id,farm_id)',
+$recentHarvest = $harvestModel->all(
     [],
     ['limit' => 5, 'order' => 'harvest_id.desc'],
 );
 
 // Plantings by status for chart
-$plantingStatus = $sb->select('planting', 'status,count', [], ['order' => 'status.asc']);
+$plantingStatus = $plantingModel->byStatus();
 
 // Total harvested quantity
-$harvestRows = $sb->select('harvest', 'quantity_kg');
-$totalHarvest = 0;
-foreach ($harvestRows as $r) {
-    $totalHarvest += (float) ($r['quantity_kg'] ?? 0);
-}
+$totalHarvest = $harvestModel->totalQuantity();
 
 $pageTitle = 'Dashboard';
 ?>
