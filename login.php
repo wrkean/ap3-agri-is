@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+    <div class="w-full max-w-md bg-white rounded-lg border border-gray-200 p-8">
         <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
                 <i class="fa-solid fa-leaf text-green-600 text-2xl"></i>
