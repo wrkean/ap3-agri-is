@@ -44,7 +44,7 @@ switch ($reportType) {
 <h1 class="text-2xl font-bold text-gray-800 mb-6 fade-in">Reports</h1>
 
 <!-- Report selector -->
-<div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 fade-in">
+<div class="bg-white p-4 rounded-lg border border-gray-200 mb-6 fade-in">
     <form method="GET" class="flex flex-col md:flex-row gap-4 items-end">
         <div class="w-full md:w-1/3">
             <label class="block text-sm font-medium text-gray-700 mb-1">Report Type</label>
@@ -70,7 +70,7 @@ switch ($reportType) {
 </div>
 
 <!-- Report output -->
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in">
+<div class="bg-white rounded-lg border border-gray-200 overflow-hidden fade-in">
     <?php if ($reportType === 'farmers_farms'): ?>
         <div class="px-6 py-4 border-b border-gray-100"><h3 class="font-semibold text-gray-800">Farmers and Their Farms</h3></div>
         <div class="overflow-x-auto">
