@@ -73,8 +73,7 @@ $page = (int) ($_GET['page'] ?? 1);
 
 $filters = [];
 if ($search !== '') {
-    $filters[] = 'crop_name=ilike.%' . rawurlencode($search) . '%';
-    $filters[] = 'variety=ilike.%' . rawurlencode($search) . '%';
+    $filters[] = 'or=(crop_name.ilike.%' . rawurlencode($search) . '%,variety.ilike.%' . rawurlencode($search) . '%)';
 }
 if ($catFilter !== '') {
     $filters[] = 'crop_category=eq.' . rawurlencode($catFilter);
