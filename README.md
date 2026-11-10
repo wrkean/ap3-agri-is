@@ -61,9 +61,6 @@ The app will automatically use Supabase when `.env` is configured. Otherwise it 
 | Administrator | admin@example.com | admin123 |
 | Staff | staff@example.com | staff123 |
 
-## Conventional Commits
-
-This project uses conventional commit messages (`feat:`, `chore:`, `docs:`, `fix:`, etc.) as required by the class.
 
 ## Deliverables
 
