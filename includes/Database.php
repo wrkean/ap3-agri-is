@@ -382,7 +382,10 @@ class Database {
         $stmt = $this->pdo->prepare("INSERT INTO $table ($cols) VALUES ($placeholders)");
         $stmt->execute(array_values($data));
         $id = (int)$this->pdo->lastInsertId();
-        return $id ? $this->find($table, $id) : [];
+        if (!$id) return [];
+        $pk = $this->getPrimaryKey($table);
+        $row = $this->find($table, $id, $pk);
+        return $row ?: array_merge($data, [$pk => $id]);
     }
 
     public function update(string $table, array $data, array $filters) {
@@ -423,6 +426,33 @@ class Database {
         $stmt->execute([$id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
+    }
+
+    private function getPrimaryKey(string $table): string {
+        static $pkCache = [];
+        if (isset($pkCache[$table])) return $pkCache[$table];
+        // Known PKs
+        $known = [
+            'crop' => 'crop_id',
+            'farmer' => 'farmer_id',
+            'farm' => 'farm_id',
+            'planting' => 'planting_id',
+            'harvest' => 'harvest_id',
+            'harvest_remarks' => 'remark_id',
+        ];
+        if (isset($known[$table])) {
+            $pkCache[$table] = $known[$table];
+            return $known[$table];
+        }
+        // Fallback: query sqlite
+        $stmt = $this->pdo->query("PRAGMA table_info($table)");
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if ($row['pk'] == 1) {
+                $pkCache[$table] = $row['name'];
+                return $row['name'];
+            }
+        }
+        return 'id';
     }
 
     private function getTableColumns(string $table): array {

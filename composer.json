@@ -8,7 +8,8 @@
     },
     "require-dev": {
         "phpdocumentor/phpdocumentor": "^3.0",
-        "friendsofphp/php-cs-fixer": "^3.0"
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "phpunit/phpunit": "^10.5"
     },
     "autoload": {
         "psr-4": {
