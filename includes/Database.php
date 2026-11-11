@@ -6,12 +6,14 @@
 
 require_once __DIR__ . '/Supabase.php';
 
-class Database {
+class Database
+{
     private string $driver;
     private ?Supabase $supabase = null;
     private ?PDO $pdo = null;
 
-    public function __construct() {
+    public function __construct()
+    {
         $envFile = __DIR__ . '/../.env';
         $supabaseUrl = '';
         $supabaseKey = '';
@@ -19,11 +21,18 @@ class Database {
             $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
             foreach ($lines as $line) {
                 $line = trim($line);
-                if (strpos($line, '#') === 0 || strpos($line, '=') === false) continue;
+                if (strpos($line, '#') === 0 || strpos($line, '=') === false) {
+                    continue;
+                }
                 [$k, $v] = explode('=', $line, 2);
-                $k = trim($k); $v = trim($v);
-                if ($k === 'SUPABASE_URL') $supabaseUrl = $v;
-                if ($k === 'SUPABASE_ANON_KEY') $supabaseKey = $v;
+                $k = trim($k);
+                $v = trim($v);
+                if ($k === 'SUPABASE_URL') {
+                    $supabaseUrl = $v;
+                }
+                if ($k === 'SUPABASE_ANON_KEY') {
+                    $supabaseKey = $v;
+                }
             }
         }
 
@@ -39,28 +48,46 @@ class Database {
         }
     }
 
-    public function getDriver(): string { return $this->driver; }
-    private function isSupabase(): bool { return $this->driver === 'supabase'; }
+    public function getDriver(): string
+    {
+        return $this->driver;
+    }
+    private function isSupabase(): bool
+    {
+        return $this->driver === 'supabase';
+    }
 
-    public function select(string $table, string $columns = '*', array $filters = [], array $options = []) {
+    public function select(string $table, string $columns = '*', array $filters = [], array $options = [])
+    {
         if ($this->isSupabase()) {
             return $this->supabase->select($table, $columns, $filters, $options);
         }
         return $this->sqliteSelect($table, $columns, $filters, $options);
     }
 
-    private function sqliteSelect(string $table, string $columns, array $filters, array $options) {
+    private function sqliteSelect(string $table, string $columns, array $filters, array $options)
+    {
         // Handle aggregate: "status,count"
         if (preg_match('/^(\w+),count(\(\*\))?$/i', trim($columns), $m)) {
             $col = $m[1];
             $sql = "SELECT $col, COUNT(*) as count FROM $table";
-            $where = []; $params = [];
+            $where = [];
+            $params = [];
             foreach ($filters as $f) {
-                if (!is_string($f)) continue;
+                if (!is_string($f)) {
+                    continue;
+                }
                 $parsed = $this->parseFilter($f);
-                if ($parsed) { $where[] = $parsed['sql']; foreach ($parsed['params'] as $p) $params[] = $p; }
+                if ($parsed) {
+                    $where[] = $parsed['sql'];
+                    foreach ($parsed['params'] as $p) {
+                        $params[] = $p;
+                    }
+                }
             }
-            if ($where) $sql .= " WHERE " . implode(' AND ', $where);
+            if ($where) {
+                $sql .= ' WHERE ' . implode(' AND ', $where);
+            }
             $sql .= " GROUP BY $col";
             if (!empty($options['order'])) {
                 $order = $options['order'];
@@ -86,18 +113,27 @@ class Database {
         }
 
         $sql = "SELECT $selectCols FROM $table";
-        foreach ($joins as $j) $sql .= " " . $j;
+        foreach ($joins as $j) {
+            $sql .= ' ' . $j;
+        }
 
-        $where = []; $params = [];
+        $where = [];
+        $params = [];
         foreach ($filters as $f) {
-            if (!is_string($f)) continue;
+            if (!is_string($f)) {
+                continue;
+            }
             $parsed = $this->parseFilter($f);
             if ($parsed) {
                 $where[] = $parsed['sql'];
-                foreach ($parsed['params'] as $p) $params[] = $p;
+                foreach ($parsed['params'] as $p) {
+                    $params[] = $p;
+                }
             }
         }
-        if ($where) $sql .= " WHERE " . implode(' AND ', $where);
+        if ($where) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
 
         if (!empty($options['order'])) {
             $order = $options['order'];
@@ -108,8 +144,12 @@ class Database {
                 $sql .= " ORDER BY $order";
             }
         }
-        if (isset($options['limit'])) $sql .= " LIMIT " . (int)$options['limit'];
-        if (isset($options['offset'])) $sql .= " OFFSET " . (int)$options['offset'];
+        if (isset($options['limit'])) {
+            $sql .= ' LIMIT ' . (int) $options['limit'];
+        }
+        if (isset($options['offset'])) {
+            $sql .= ' OFFSET ' . (int) $options['offset'];
+        }
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
@@ -123,18 +163,30 @@ class Database {
         return $rows;
     }
 
-    private function extractTopLevelGroups(string $columns): array {
+    private function extractTopLevelGroups(string $columns): array
+    {
         $tokens = [];
-        $buf = ''; $d = 0;
+        $buf = '';
+        $d = 0;
         $len = strlen($columns);
         for ($i = 0; $i < $len; $i++) {
             $ch = $columns[$i];
-            if ($ch === '(') { $d++; $buf .= $ch; }
-            elseif ($ch === ')') { $d--; $buf .= $ch; }
-            elseif ($ch === ',' && $d === 0) { $tokens[] = trim($buf); $buf = ''; }
-            else { $buf .= $ch; }
+            if ($ch === '(') {
+                $d++;
+                $buf .= $ch;
+            } elseif ($ch === ')') {
+                $d--;
+                $buf .= $ch;
+            } elseif ($ch === ',' && $d === 0) {
+                $tokens[] = trim($buf);
+                $buf = '';
+            } else {
+                $buf .= $ch;
+            }
         }
-        if (trim($buf) !== '') $tokens[] = trim($buf);
+        if (trim($buf) !== '') {
+            $tokens[] = trim($buf);
+        }
 
         $groups = [];
         foreach ($tokens as $tok) {
@@ -142,15 +194,26 @@ class Database {
                 $gname = $m[1];
                 $inner = $m[2];
                 $innerTokens = [];
-                $buf2 = ''; $d2 = 0;
+                $buf2 = '';
+                $d2 = 0;
                 for ($j = 0; $j < strlen($inner); $j++) {
                     $ch = $inner[$j];
-                    if ($ch === '(') { $d2++; $buf2 .= $ch; }
-                    elseif ($ch === ')') { $d2--; $buf2 .= $ch; }
-                    elseif ($ch === ',' && $d2 === 0) { $innerTokens[] = trim($buf2); $buf2 = ''; }
-                    else { $buf2 .= $ch; }
+                    if ($ch === '(') {
+                        $d2++;
+                        $buf2 .= $ch;
+                    } elseif ($ch === ')') {
+                        $d2--;
+                        $buf2 .= $ch;
+                    } elseif ($ch === ',' && $d2 === 0) {
+                        $innerTokens[] = trim($buf2);
+                        $buf2 = '';
+                    } else {
+                        $buf2 .= $ch;
+                    }
                 }
-                if (trim($buf2) !== '') $innerTokens[] = trim($buf2);
+                if (trim($buf2) !== '') {
+                    $innerTokens[] = trim($buf2);
+                }
 
                 $cols = [];
                 foreach ($innerTokens as $it) {
@@ -166,7 +229,8 @@ class Database {
         return $groups;
     }
 
-    private function parseNestedSelect(string $table, string $columns): array {
+    private function parseNestedSelect(string $table, string $columns): array
+    {
         $joins = [];
         $select = "$table.*";
         // FK mapping: child_table => parent_column (the FK on child that references parent)
@@ -182,8 +246,8 @@ class Database {
             $relTable = $group['table'];
             // Determine FK: is it on $table side or $relTable side?
             $fkOnTable = $relTable . '_id'; // e.g. farm_id on planting table
-            $fkOnRel = $table . '_id';     // e.g. farmer_id on farm table (reverse)
-            
+            $fkOnRel = $table . '_id'; // e.g. farmer_id on farm table (reverse)
+
             // Check if $table has the FK column (forward relation)
             if (in_array($fkOnTable, $this->getTableColumns($table))) {
                 $joinCond = "$table.$fkOnTable = $relTable.{$relTable}_id";
@@ -194,7 +258,7 @@ class Database {
                 // Fallback
                 $joinCond = "$table.{$relTable}_id = $relTable.{$relTable}_id";
             }
-            
+
             $topJoin = "LEFT JOIN $relTable ON $joinCond";
             $nestedJoins = [];
             foreach ($group['cols'] as $col) {
@@ -227,12 +291,15 @@ class Database {
                 }
             }
             $joins[] = $topJoin;
-            foreach ($nestedJoins as $nj) $joins[] = $nj;
+            foreach ($nestedJoins as $nj) {
+                $joins[] = $nj;
+            }
         }
         return ['select' => $select, 'joins' => $joins];
     }
 
-    private function nestRelations(array $rows, string $columns): array {
+    private function nestRelations(array $rows, string $columns): array
+    {
         $groups = $this->extractTopLevelGroups($columns);
         foreach ($rows as &$row) {
             foreach ($groups as $group) {
@@ -276,9 +343,12 @@ class Database {
         return $rows;
     }
 
-    private function getTableColumns(string $table): array {
+    private function getTableColumns(string $table): array
+    {
         static $cache = [];
-        if (isset($cache[$table])) return $cache[$table];
+        if (isset($cache[$table])) {
+            return $cache[$table];
+        }
         $stmt = $this->pdo->query("PRAGMA table_info($table)");
         $cols = [];
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
@@ -288,13 +358,16 @@ class Database {
         return $cols;
     }
 
-    private function groupByParent(string $table, array $rows, string $columns): array {
-        if (empty($rows)) return $rows;
+    private function groupByParent(string $table, array $rows, string $columns): array
+    {
+        if (empty($rows)) {
+            return $rows;
+        }
         $pk = $table . '_id';
         // Determine nested relation names
         $groups = $this->extractTopLevelGroups($columns);
         $relNames = array_column($groups, 'table');
-        
+
         $grouped = [];
         foreach ($rows as $row) {
             $key = $row[$pk] ?? null;
@@ -315,8 +388,13 @@ class Database {
                     // Avoid duplicates
                     $exists = false;
                     foreach ($grouped[$key][$rn] as $existing) {
-                        if (isset($existing[$rn . '_id']) && isset($row[$rn][$rn . '_id']) && $existing[$rn . '_id'] === $row[$rn][$rn . '_id']) {
-                            $exists = true; break;
+                        if (
+                            isset($existing[$rn . '_id']) &&
+                            isset($row[$rn][$rn . '_id']) &&
+                            $existing[$rn . '_id'] === $row[$rn][$rn . '_id']
+                        ) {
+                            $exists = true;
+                            break;
                         }
                     }
                     if (!$exists) {
@@ -337,68 +415,115 @@ class Database {
         return $result;
     }
 
-    private function parseFilter(string $filter): ?array {
-        if (!preg_match('/^(\w+)=([a-z]+)\.(.+)$/', $filter, $m)) return null;
-        $col = $m[1]; $op = $m[2]; $val = $m[3];
+    private function parseFilter(string $filter): ?array
+    {
+        if (!preg_match('/^(\w+)=([a-z]+)\.(.+)$/', $filter, $m)) {
+            return null;
+        }
+        $col = $m[1];
+        $op = $m[2];
+        $val = $m[3];
         switch ($op) {
-            case 'eq': return ['sql' => "$col = ?", 'params' => [$val]];
+            case 'eq':
+                return ['sql' => "$col = ?", 'params' => [$val]];
             case 'ilike':
             case 'like':
                 $val = str_replace('%', '', $val);
                 return ['sql' => "$col LIKE ?", 'params' => ['%' . $val . '%']];
-            case 'gt': return ['sql' => "$col > ?", 'params' => [$val]];
-            case 'lt': return ['sql' => "$col < ?", 'params' => [$val]];
-            case 'gte': return ['sql' => "$col >= ?", 'params' => [$val]];
-            case 'lte': return ['sql' => "$col <= ?", 'params' => [$val]];
-            case 'neq': return ['sql' => "$col != ?", 'params' => [$val]];
-            default: return ['sql' => "$col = ?", 'params' => [$val]];
+            case 'gt':
+                return ['sql' => "$col > ?", 'params' => [$val]];
+            case 'lt':
+                return ['sql' => "$col < ?", 'params' => [$val]];
+            case 'gte':
+                return ['sql' => "$col >= ?", 'params' => [$val]];
+            case 'lte':
+                return ['sql' => "$col <= ?", 'params' => [$val]];
+            case 'neq':
+                return ['sql' => "$col != ?", 'params' => [$val]];
+            default:
+                return ['sql' => "$col = ?", 'params' => [$val]];
         }
     }
 
-    public function insert(string $table, array $data) {
-        if ($this->isSupabase()) return $this->supabase->insert($table, $data);
+    public function insert(string $table, array $data)
+    {
+        if ($this->isSupabase()) {
+            return $this->supabase->insert($table, $data);
+        }
         $cols = implode(', ', array_keys($data));
         $placeholders = implode(', ', array_fill(0, count($data), '?'));
         $stmt = $this->pdo->prepare("INSERT INTO $table ($cols) VALUES ($placeholders)");
         $stmt->execute(array_values($data));
-        $id = (int)$this->pdo->lastInsertId();
+        $id = (int) $this->pdo->lastInsertId();
         return $id ? $this->find($table, $id) : [];
     }
 
-    public function update(string $table, array $data, array $filters) {
-        if ($this->isSupabase()) return $this->supabase->update($table, $data, $filters);
-        $set = []; $params = [];
-        foreach ($data as $col => $val) { $set[] = "$col = ?"; $params[] = $val; }
+    public function update(string $table, array $data, array $filters)
+    {
+        if ($this->isSupabase()) {
+            return $this->supabase->update($table, $data, $filters);
+        }
+        $set = [];
+        $params = [];
+        foreach ($data as $col => $val) {
+            $set[] = "$col = ?";
+            $params[] = $val;
+        }
         $sql = "UPDATE $table SET " . implode(', ', $set);
         $where = [];
         foreach ($filters as $f) {
-            if (!is_string($f)) continue;
+            if (!is_string($f)) {
+                continue;
+            }
             $parsed = $this->parseFilter($f);
-            if ($parsed) { $where[] = $parsed['sql']; foreach ($parsed['params'] as $p) $params[] = $p; }
+            if ($parsed) {
+                $where[] = $parsed['sql'];
+                foreach ($parsed['params'] as $p) {
+                    $params[] = $p;
+                }
+            }
         }
-        if ($where) $sql .= " WHERE " . implode(' AND ', $where);
+        if ($where) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         return [];
     }
 
-    public function delete(string $table, array $filters) {
-        if ($this->isSupabase()) return $this->supabase->delete($table, $filters);
+    public function delete(string $table, array $filters)
+    {
+        if ($this->isSupabase()) {
+            return $this->supabase->delete($table, $filters);
+        }
         $sql = "DELETE FROM $table";
-        $params = []; $where = [];
+        $params = [];
+        $where = [];
         foreach ($filters as $f) {
-            if (!is_string($f)) continue;
+            if (!is_string($f)) {
+                continue;
+            }
             $parsed = $this->parseFilter($f);
-            if ($parsed) { $where[] = $parsed['sql']; foreach ($parsed['params'] as $p) $params[] = $p; }
+            if ($parsed) {
+                $where[] = $parsed['sql'];
+                foreach ($parsed['params'] as $p) {
+                    $params[] = $p;
+                }
+            }
         }
-        if ($where) $sql .= " WHERE " . implode(' AND ', $where);
+        if ($where) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         return [];
     }
 
-    public function find(string $table, int $id, string $pk = 'id') {
-        if ($this->isSupabase()) return $this->supabase->find($table, $id, $pk);
+    public function find(string $table, int $id, string $pk = 'id')
+    {
+        if ($this->isSupabase()) {
+            return $this->supabase->find($table, $id, $pk);
+        }
         $stmt = $this->pdo->prepare("SELECT * FROM $table WHERE $pk = ?");
         $stmt->execute([$id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);

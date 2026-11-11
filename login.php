@@ -3,7 +3,7 @@ require_once __DIR__ . '/includes/auth.php';
 
 if (isLoggedIn()) {
     header('Location: index.php');
-    exit;
+    exit();
 }
 
 $error = '';
@@ -15,9 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (login($email, $password)) {
         $redirect = $_SESSION['redirect_after_login'] ?? 'index.php';
         unset($_SESSION['redirect_after_login']);
-        $redirect = (strpos($redirect, '/') === 0) ? $redirect : '/' . ltrim($redirect, '/');
+        $redirect = strpos($redirect, '/') === 0 ? $redirect : '/' . ltrim($redirect, '/');
         header('Location: ' . $redirect);
-        exit;
+        exit();
     } else {
         $error = 'Invalid email or password.';
     }
