@@ -84,7 +84,7 @@ $p = pagination($page, $total);
 $rows = $sb->select(
     'harvest',
     '*,planting(planting_id,farm(farm_name),crop(crop_name))',
-    array_merge($filters, ['order' => $sort . '.' . $dir, 'limit' => $p['limit'], 'offset' => $p['offset']]),
+    $filters, ['order' => $sort . '.' . $dir, 'limit' => $p['limit'], 'offset' => $p['offset']],
 );
 
 $editRow = null;
@@ -192,16 +192,16 @@ $pl['planting_id']
     </div>
 
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row gap-4 items-end">
+        <form method="GET" action="index.php" class="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row gap-4 items-end">
             <div class="relative w-full md:w-1/3">
                 <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
-                <input type="text" id="searchInput" value="<?php echo e(
+                <input type="text" id="searchInput" name="search" value="<?php echo e(
                     $search,
                 ); ?>" placeholder="Search by quality grade..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
             </div>
             <div class="relative w-full md:w-1/3">
                 <label class="block text-xs font-medium text-gray-500 mb-1">Quality Grade</label>
-                <select id="gradeFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                <select id="gradeFilter" name="grade" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
                     <option value="">All</option>
                     <?php foreach ($gradeOptions as $o): ?><option value="<?php echo e(
     $o,
@@ -221,7 +221,7 @@ $pl['planting_id']
     ? 'bg-blue-50 text-blue-600'
     : 'border border-gray-200 text-gray-700 hover:bg-gray-50'; ?>">Sort by Date</a>
             </div>
-        </div>
+        </form>
 
         <div class="overflow-x-auto">
             <table class="w-full text-sm">

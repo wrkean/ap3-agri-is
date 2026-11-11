@@ -75,7 +75,11 @@ $page = (int) ($_GET['page'] ?? 1);
 
 $filters = [];
 if ($search !== '') {
-    $filters[] = 'or=(first_name.ilike.%' . rawurlencode($search) . '%,last_name.ilike.%' . rawurlencode($search) . '%,address.ilike.%' . rawurlencode($search) . '%)';
+    foreach (preg_split('/\s+/', trim($search)) as $word) {
+        if ($word === '') continue;
+        $w = rawurlencode($word);
+        $filters[] = 'or=(first_name.ilike.%' . $w . '%,last_name.ilike.%' . $w . '%,address.ilike.%' . $w . '%)';
+    }
 }
 
 // Get count for pagination
@@ -86,11 +90,12 @@ $p = pagination($page, $total);
 $rows = $sb->select(
     'farmer',
     '*',
-    array_merge($filters, [
+    $filters,
+    [
         'order' => $sort . '.' . $dir,
         'limit' => $p['limit'],
         'offset' => $p['offset'],
-    ]),
+    ],
 );
 
 // Edit form data
@@ -165,7 +170,7 @@ if ($action === 'edit' && $id > 0) {
     </div>
 
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row gap-4 items-end">
+        <form method="GET" action="index.php" class="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row gap-4 items-end">
             <div class="relative w-full md:w-1/2">
                 <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
                 <input type="text" id="searchInput" name="search" value="<?php echo e(
@@ -186,7 +191,7 @@ if ($action === 'edit' && $id > 0) {
     ? 'bg-blue-50 text-blue-600'
     : 'border border-gray-200 text-gray-700 hover:bg-gray-50'; ?>">Sort by Name</a>
             </div>
-        </div>
+        </form>
 
         <div class="overflow-x-auto">
             <table class="w-full text-sm">

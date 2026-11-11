@@ -99,7 +99,7 @@ $p = pagination($page, $total);
 $rows = $sb->select(
     'planting',
     '*,farm(farm_name),crop(crop_name)',
-    array_merge($filters, ['order' => $sort . '.' . $dir, 'limit' => $p['limit'], 'offset' => $p['offset']]),
+    $filters, ['order' => $sort . '.' . $dir, 'limit' => $p['limit'], 'offset' => $p['offset']],
 );
 
 $editRow = null;
@@ -203,16 +203,16 @@ $statusOptions = ['Growing', 'Harvested', 'Failed'];
     </div>
 
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row gap-4 items-end">
+        <form method="GET" action="index.php" class="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row gap-4 items-end">
             <div class="relative w-full md:w-1/3">
                 <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
-                <input type="text" id="searchInput" value="<?php echo e(
+                <input type="text" id="searchInput" name="search" value="<?php echo e(
                     $search,
                 ); ?>" placeholder="Search by date..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
             </div>
             <div class="relative w-full md:w-1/3">
                 <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
-                <select id="statusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                <select id="statusFilter" name="status" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
                     <option value="">All</option>
                     <?php foreach ($statusOptions as $o): ?><option value="<?php echo e(
     $o,
@@ -221,7 +221,7 @@ $statusOptions = ['Growing', 'Harvested', 'Failed'];
             </div>
             <div class="relative w-full md:w-1/3">
                 <label class="block text-xs font-medium text-gray-500 mb-1">Farm</label>
-                <select id="farmFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                <select id="farmFilter" name="farm" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
                     <option value="">All</option>
                     <?php foreach ($farms as $f): ?><option value="<?php echo $f[
     'farm_id'
@@ -248,7 +248,7 @@ $statusOptions = ['Growing', 'Harvested', 'Failed'];
     ? 'bg-blue-50 text-blue-600'
     : 'border border-gray-200 text-gray-700 hover:bg-gray-50'; ?>">Sort by Date</a>
             </div>
-        </div>
+        </form>
 
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
