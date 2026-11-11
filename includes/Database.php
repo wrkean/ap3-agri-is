@@ -319,6 +319,45 @@ class Database {
     }
 
     private function parseFilter(string $filter): ?array {
+        // Handle or=(col1.op.val1,col2.op.val2,...)
+        if (preg_match('/^or=\((.+)\)$/', $filter, $m)) {
+            $inner = $m[1];
+            $parts = [];
+            $buf = ''; $d = 0;
+            for ($i = 0; $i < strlen($inner); $i++) {
+                $ch = $inner[$i];
+                if ($ch === '(') { $d++; $buf .= $ch; }
+                elseif ($ch === ')') { $d--; $buf .= $ch; }
+                elseif ($ch === ',' && $d === 0) { $parts[] = trim($buf); $buf = ''; }
+                else { $buf .= $ch; }
+            }
+            if (trim($buf) !== '') $parts[] = trim($buf);
+
+            $sqlParts = [];
+            $params = [];
+            foreach ($parts as $part) {
+                if (!preg_match('/^(\w+)\.([a-z]+)\.(.+)$/', $part, $mm)) continue;
+                $col = $mm[1]; $op = $mm[2]; $val = $mm[3];
+                switch ($op) {
+                    case 'ilike':
+                    case 'like':
+                        $val = str_replace('%', '', $val);
+                        $sqlParts[] = "$col LIKE ?";
+                        $params[] = '%' . $val . '%';
+                        break;
+                    case 'eq':
+                        $sqlParts[] = "$col = ?";
+                        $params[] = $val;
+                        break;
+                    default:
+                        $sqlParts[] = "$col = ?";
+                        $params[] = $val;
+                }
+            }
+            if (empty($sqlParts)) return null;
+            return ['sql' => '(' . implode(' OR ', $sqlParts) . ')', 'params' => $params];
+        }
+
         if (!preg_match('/^(\w+)=([a-z]+)\.(.+)$/', $filter, $m)) return null;
         $col = $m[1]; $op = $m[2]; $val = $m[3];
         switch ($op) {

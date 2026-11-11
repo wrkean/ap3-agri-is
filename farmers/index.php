@@ -75,9 +75,7 @@ $page = (int) ($_GET['page'] ?? 1);
 
 $filters = [];
 if ($search !== '') {
-    $filters[] = 'first_name=ilike.%' . rawurlencode($search) . '%';
-    $filters[] = 'last_name=ilike.%' . rawurlencode($search) . '%';
-    $filters[] = 'address=ilike.%' . rawurlencode($search) . '%';
+    $filters[] = 'or=(first_name.ilike.%' . rawurlencode($search) . '%,last_name.ilike.%' . rawurlencode($search) . '%,address.ilike.%' . rawurlencode($search) . '%)';
 }
 
 // Get count for pagination

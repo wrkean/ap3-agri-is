@@ -81,8 +81,7 @@ $page = (int) ($_GET['page'] ?? 1);
 
 $filters = [];
 if ($search !== '') {
-    $filters[] = 'farm_name=ilike.%' . rawurlencode($search) . '%';
-    $filters[] = 'location=ilike.%' . rawurlencode($search) . '%';
+    $filters[] = 'or=(farm_name.ilike.%' . rawurlencode($search) . '%,location.ilike.%' . rawurlencode($search) . '%)';
 }
 if ($irrFilter !== '') {
     $filters[] = 'irrigation_type=eq.' . rawurlencode($irrFilter);
