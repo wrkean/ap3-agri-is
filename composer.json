@@ -17,7 +17,7 @@
     },
     "scripts": {
         "serve": "php -S localhost:8000",
-        "docs": "phpdoc -d . -t docs/api --ignore vendor/,node_modules/,database/",
+        "docs": "doxygen Doxyfile",
         "format": "php-cs-fixer fix",
         "format:check": "php-cs-fixer fix --dry-run --diff"
     },
