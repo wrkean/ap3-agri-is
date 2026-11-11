@@ -203,6 +203,7 @@ $o
 ); ?>"<?php echo $seasonFilter === $o ? ' selected' : ''; ?>><?php echo e($o); ?></option><?php endforeach; ?>
                 </select>
             </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition flex items-center gap-2"><i class="fa-solid fa-search"></i> Search</button>
             <div class="flex gap-2">
                 <a href="index.php?search=<?php echo rawurlencode($search); ?>&category=<?php echo rawurlencode(
     $catFilter,
