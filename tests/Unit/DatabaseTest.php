@@ -12,7 +12,7 @@ class DatabaseTest extends TestCase {
     }
 
     public function testSelectAllCrops(): void {
-        $crops = $this->db->select('crop', 'crop_id,crop_name');
+        $crops = $this->db->select('crop', 'crop_id,species_id,variety');
         $this->assertIsArray($crops);
         $this->assertCount(10, $crops);
     }
@@ -20,18 +20,36 @@ class DatabaseTest extends TestCase {
     public function testSelectCropById(): void {
         $crop = $this->db->find('crop', 1, 'crop_id');
         $this->assertNotNull($crop);
-        $this->assertEquals('Rice', $crop['crop_name']);
+        $this->assertEquals(1, (int) $crop['species_id']);
         $this->assertEquals('NSIC Rc 222', $crop['variety']);
+        $this->assertEquals(1, (int) $crop['season_id']);
+    }
+
+    public function testCropNestsSpeciesAndCategory(): void {
+        $crops = $this->db->select(
+            'crop',
+            '*,species(crop_name,crop_category(category_name)),season(season_name)',
+            ['crop_id=eq.1'],
+        );
+        $this->assertCount(1, $crops);
+        $crop = $crops[0];
+        $this->assertEquals('Rice', $crop['species']['crop_name']);
+        $this->assertEquals('Cereal', $crop['species']['crop_category']['category_name']);
+        $this->assertEquals('Wet Season', $crop['season']['season_name']);
     }
 
     public function testSelectWithFilter(): void {
-        $crops = $this->db->select('crop', 'crop_id,crop_name', ['crop_category=eq.Vegetable']);
-        $this->assertIsArray($crops);
-        $this->assertGreaterThanOrEqual(2, count($crops));
+        // Vegetables (crop_category_id = 2) are Tomato (3) and Eggplant (4).
+        $species = $this->db->select('species', 'species_id', ['crop_category_id=eq.2']);
+        $ids = array_map('intval', array_column($species, 'species_id'));
+        $this->assertNotEmpty($ids);
+
+        $crops = $this->db->select('crop', 'crop_id,species_id', [
+            'species_id=in.(' . implode(',', $ids) . ')',
+        ]);
+        $this->assertCount(2, $crops);
         foreach ($crops as $c) {
-            // Verify they're actually vegetables by checking the DB
-            $full = $this->db->find('crop', $c['crop_id'], 'crop_id');
-            $this->assertEquals('Vegetable', $full['crop_category']);
+            $this->assertContains((int) $c['species_id'], $ids);
         }
     }
 
@@ -39,12 +57,13 @@ class DatabaseTest extends TestCase {
         // Callers URL-encode filter values (e.g. spaces as %20) because the
         // Supabase/PostgREST backend expects encoded query strings. The SQLite
         // backend must decode them too, or multi-word values never match.
-        $farms = $this->db->select('farm', 'farm_id,farm_name,irrigation_type', [
-            'irrigation_type=eq.' . rawurlencode('Drip Irrigation'),
+        // irrigation_type_id = 3 is "Drip Irrigation".
+        $farms = $this->db->select('farm', 'farm_id,farm_name,irrigation_type(type_name)', [
+            'irrigation_type_id=eq.3',
         ]);
         $this->assertCount(3, $farms);
         foreach ($farms as $f) {
-            $this->assertEquals('Drip Irrigation', $f['irrigation_type']);
+            $this->assertEquals('Drip Irrigation', $f['irrigation_type']['type_name']);
         }
     }
 
@@ -80,26 +99,41 @@ class DatabaseTest extends TestCase {
     }
 
     public function testSelectNestedRelation(): void {
-        $plantings = $this->db->select('planting', '*,farm(farm_name),crop(crop_name)', [], ['limit' => 1]);
+        $plantings = $this->db->select(
+            'planting',
+            '*,farm(farm_name),crop(variety,species(crop_name)),planting_status(status_name)',
+            [],
+            ['limit' => 1],
+        );
         $this->assertIsArray($plantings);
         $this->assertNotEmpty($plantings);
-        $this->assertArrayHasKey('farm', $plantings[0]);
-        $this->assertArrayHasKey('crop', $plantings[0]);
-        $this->assertNotNull($plantings[0]['farm']);
-        $this->assertNotNull($plantings[0]['crop']);
-        $this->assertArrayHasKey('farm_name', $plantings[0]['farm']);
-        $this->assertArrayHasKey('crop_name', $plantings[0]['crop']);
+        $p = $plantings[0];
+        $this->assertArrayHasKey('farm', $p);
+        $this->assertArrayHasKey('crop', $p);
+        $this->assertArrayHasKey('planting_status', $p);
+        $this->assertNotNull($p['farm']);
+        $this->assertNotNull($p['crop']);
+        $this->assertArrayHasKey('farm_name', $p['farm']);
+        $this->assertEquals('Rice', $p['crop']['species']['crop_name']);
+        $this->assertEquals('Harvested', $p['planting_status']['status_name']);
     }
 
     public function testSelectNestedOneToOne(): void {
-        $harvests = $this->db->select('harvest', '*,planting(planting_id,farm(farm_name),crop(crop_name))', [], ['limit' => 1]);
+        $harvests = $this->db->select(
+            'harvest',
+            '*,quality_grade(grade_name),planting(planting_id,farm(farm_name),crop(crop_id,variety))',
+            [],
+            ['limit' => 1],
+        );
         $this->assertIsArray($harvests);
         $this->assertNotEmpty($harvests);
         $h = $harvests[0];
         $this->assertArrayHasKey('planting', $h);
+        $this->assertArrayHasKey('quality_grade', $h);
         $this->assertNotNull($h['planting']);
         $this->assertArrayHasKey('farm', $h['planting']);
         $this->assertArrayHasKey('crop', $h['planting']);
+        $this->assertEquals('Grade A', $h['quality_grade']['grade_name']);
     }
 
     public function testInsertAndFind(): void {
@@ -162,11 +196,11 @@ class DatabaseTest extends TestCase {
     }
 
     public function testAggregateCount(): void {
-        $statusCounts = $this->db->select('planting', 'status,count');
+        $statusCounts = $this->db->select('planting', 'planting_status_id,count');
         $this->assertIsArray($statusCounts);
         $this->assertNotEmpty($statusCounts);
         foreach ($statusCounts as $row) {
-            $this->assertArrayHasKey('status', $row);
+            $this->assertArrayHasKey('planting_status_id', $row);
             $this->assertArrayHasKey('count', $row);
             $this->assertGreaterThan(0, $row['count']);
         }
@@ -194,15 +228,41 @@ class DatabaseTest extends TestCase {
     }
 
     public function testMtoOneRelationIsObject(): void {
-        $plantings = $this->db->select('planting', '*,farm(farm_name),crop(crop_name)', [], ['limit' => 1]);
+        $plantings = $this->db->select('planting', '*,farm(farm_name),crop(variety)', [], ['limit' => 1]);
         $this->assertIsArray($plantings);
         $this->assertNotEmpty($plantings);
         // farm and crop should be single objects, not arrays
         $this->assertIsArray($plantings[0]['farm']);
         $this->assertArrayHasKey('farm_name', $plantings[0]['farm']);
         $this->assertIsArray($plantings[0]['crop']);
-        $this->assertArrayHasKey('crop_name', $plantings[0]['crop']);
+        $this->assertArrayHasKey('variety', $plantings[0]['crop']);
         // Should NOT be a nested array
         $this->assertArrayNotHasKey(0, $plantings[0]['farm']);
+    }
+
+    public function testLookupTablesArePopulated(): void {
+        $expected = [
+            'crop_category' => 5,
+            'season' => 3,
+            'soil_type' => 4,
+            'irrigation_type' => 3,
+            'planting_status' => 3,
+            'quality_grade' => 3,
+            'harvest_remarks' => 5,
+        ];
+        foreach ($expected as $table => $count) {
+            $this->assertCount($count, $this->db->select($table, '*'), "$table lookup is seeded");
+        }
+    }
+
+    public function testLookupRowsExposeIdAndLabel(): void {
+        $grades = $this->db->select('quality_grade', 'quality_grade_id,grade_name', [], ['order' => 'quality_grade_id.asc']);
+        $this->assertEquals(1, (int) $grades[0]['quality_grade_id']);
+        $this->assertEquals('Grade A', $grades[0]['grade_name']);
+    }
+
+    public function testHarvestHasNoFreeTextRemarksColumn(): void {
+        $rows = $this->db->select('harvest', '*', [], ['limit' => 1]);
+        $this->assertArrayNotHasKey('remarks', $rows[0]);
     }
 }

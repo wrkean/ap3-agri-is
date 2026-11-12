@@ -28,11 +28,23 @@ $recentHarvest = $harvestModel->all(
     ['limit' => 5, 'order' => 'harvest_id.desc'],
 );
 
-// Plantings by status for chart
-$plantingStatus = $plantingModel->byStatus();
+// Plantings by status for chart (map lookup IDs to labels)
+$plantingStatusRows = $plantingModel->byStatus();
+$statusNames = [];
+foreach ($db->select('planting_status', 'planting_status_id,status_name') as $s) {
+    $statusNames[(int) $s['planting_status_id']] = $s['status_name'];
+}
+$plantingStatus = array_map(
+    fn(array $r) => [
+        'status' => $statusNames[(int) $r['planting_status_id']] ?? 'Unknown',
+        'count' => $r['count'],
+    ],
+    $plantingStatusRows,
+);
 
-// Total harvested quantity
-$totalHarvest = $harvestModel->totalQuantity();
+// Harvest totals and quantity-weighted average price
+$harvestStats = $harvestModel->stats();
+$totalHarvest = $harvestStats['quantity'];
 
 $pageTitle = 'Dashboard';
 ?>
@@ -103,9 +115,9 @@ $pageTitle = 'Dashboard';
         <p class="text-sm text-gray-500 uppercase font-semibold mb-2">Total Harvested Quantity</p>
         <h2 class="text-3xl font-bold text-gray-900 mb-1"><?php echo number_format($totalHarvest, 2); ?> kg</h2>
         <p class="text-xs text-gray-500">Estimated value: <span class="font-semibold text-gray-700"><?php echo number_format(
-            $totalHarvest * 25,
+            $harvestStats['value'],
             2,
-        ); ?> PHP</span> (avg ₱25/kg)</p>
+        ); ?> PHP</span> (avg ₱<?php echo number_format($harvestStats['average_price'], 2); ?>/kg)</p>
     </div>
 
     <div class="bg-white p-6 rounded-lg border border-gray-200">
@@ -142,16 +154,17 @@ $pageTitle = 'Dashboard';
                                     $p['farm']['farm_name'] ?? '—',
                                 ); ?></td>
                                 <td class="py-2 text-gray-700"><?php echo htmlspecialchars(
-                                    $p['crop']['crop_name'] ?? '—',
+                                    $p['crop']['species']['crop_name'] ?? '—',
                                 ); ?></td>
                                 <td class="py-2 text-gray-700"><?php echo htmlspecialchars(
                                     $p['planting_date'] ?? '',
                                 ); ?></td>
                                 <td class="py-2">
-                                    <span class="status-badge <?php echo $p['status'] === 'Harvested'
+                                    <?php $pStatus = $p['planting_status']['status_name'] ?? '—'; ?>
+                                    <span class="status-badge <?php echo $pStatus === 'Harvested'
                                         ? 'bg-green-100 text-green-700'
                                         : 'bg-blue-100 text-blue-700'; ?>">
-                                        <?php echo htmlspecialchars($p['status']); ?>
+                                        <?php echo htmlspecialchars($pStatus); ?>
                                     </span>
                                 </td>
                             </tr>
@@ -194,12 +207,13 @@ $pageTitle = 'Dashboard';
                                     2,
                                 ); ?></td>
                                 <td class="py-2">
-                                    <span class="status-badge <?php echo $h['quality_grade'] === 'Grade A'
+                                    <?php $hGrade = $h['quality_grade']['grade_name'] ?? '—'; ?>
+                                    <span class="status-badge <?php echo $hGrade === 'Grade A'
                                         ? 'bg-green-100 text-green-700'
-                                        : ($h['quality_grade'] === 'Grade B'
+                                        : ($hGrade === 'Grade B'
                                             ? 'bg-blue-100 text-blue-700'
                                             : 'bg-gray-100 text-gray-700'); ?>">
-                                        <?php echo htmlspecialchars($h['quality_grade']); ?>
+                                        <?php echo htmlspecialchars($hGrade); ?>
                                     </span>
                                 </td>
                             </tr>
