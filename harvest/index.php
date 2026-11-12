@@ -3,7 +3,9 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/crud.php';
 requireAuth();
 
-$sb = new Database();
+$db = new Database();
+$harvestModel = new Harvest($db);
+$plantingModel = new Planting($db);
 $action = $_GET['action'] ?? 'list';
 $id = (int) ($_GET['id'] ?? 0);
 
@@ -39,13 +41,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
     if ($action === 'create') {
-        $sb->insert('harvest', $data);
+        $harvestModel->create($data);
         flash('success', 'Harvest record created.');
         header('Location: harvest/index.php');
         exit();
     }
     if ($action === 'edit' && $id > 0) {
-        $sb->update('harvest', $data, ['harvest_id=eq.' . $id]);
+        $harvestModel->update($id, $data);
         flash('success', 'Harvest updated.');
         header('Location: harvest/index.php');
         exit();
@@ -53,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($action === 'delete' && $id > 0) {
-    $sb->delete('harvest', ['harvest_id=eq.' . $id]);
+    $harvestModel->delete($id);
     flash('success', 'Harvest deleted.');
     header('Location: harvest/index.php');
     exit();
@@ -61,8 +63,8 @@ if ($action === 'delete' && $id > 0) {
 
 $pageTitle = 'Harvest Records';
 
-$plantings = $sb->select('planting', '*,farm(farm_name),crop(crop_name)', [], ['limit' => 100]);
-$remarks = $sb->select('harvest_remarks', 'remark_id,remark_description');
+$plantings = $plantingModel->all([], ['limit' => 100]);
+$remarks = $db->select('harvest_remarks', 'remark_id,remark_description');
 
 $search = trim($_GET['search'] ?? '');
 $gradeFilter = $_GET['grade'] ?? '';
@@ -78,18 +80,17 @@ if ($gradeFilter !== '') {
     $filters[] = 'quality_grade=eq.' . rawurlencode($gradeFilter);
 }
 
-$countRows = $sb->select('harvest', 'harvest_id', $filters);
+$countRows = $db->select('harvest', 'harvest_id', $filters);
 $total = count($countRows);
 $p = pagination($page, $total);
-$rows = $sb->select(
-    'harvest',
-    '*,planting(planting_id,farm(farm_name),crop(crop_name))',
-    $filters, ['order' => $sort . '.' . $dir, 'limit' => $p['limit'], 'offset' => $p['offset']],
+$rows = $harvestModel->all(
+    $filters,
+    ['order' => $sort . '.' . $dir, 'limit' => $p['limit'], 'offset' => $p['offset']],
 );
 
 $editRow = null;
 if ($action === 'edit' && $id > 0) {
-    $editRow = $sb->find('harvest', $id, 'harvest_id');
+    $editRow = $harvestModel->find($id);
 }
 
 $gradeOptions = ['Grade A', 'Grade B', 'Grade C'];

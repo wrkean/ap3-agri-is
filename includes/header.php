@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/Database.php';
-$sb = new Database();
+require_once __DIR__ . '/models.php';
+$db = new Database();
 
 // Determine active nav item based on current request path
 $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
