@@ -337,7 +337,7 @@ class Database {
             $params = [];
             foreach ($parts as $part) {
                 if (!preg_match('/^(\w+)\.([a-z]+)\.(.+)$/', $part, $mm)) continue;
-                $col = $mm[1]; $op = $mm[2]; $val = $mm[3];
+                $col = $mm[1]; $op = $mm[2]; $val = urldecode($mm[3]);
                 switch ($op) {
                     case 'ilike':
                     case 'like':
@@ -359,7 +359,7 @@ class Database {
         }
 
         if (!preg_match('/^(\w+)=([a-z]+)\.(.+)$/', $filter, $m)) return null;
-        $col = $m[1]; $op = $m[2]; $val = $m[3];
+        $col = $m[1]; $op = $m[2]; $val = urldecode($m[3]);
         switch ($op) {
             case 'eq': return ['sql' => "$col = ?", 'params' => [$val]];
             case 'ilike':
