@@ -23,6 +23,10 @@ package-lock.json
 # Doxygen generated output
 docs/doxygen/
 
+# PHPUnit
+.phpunit.result.cache
+.phpunit.cache/
+
 # Temporary / build
 *.tmp
 *.bak
