@@ -35,6 +35,27 @@ class DatabaseTest extends TestCase {
         }
     }
 
+    public function testSelectWithUrlEncodedEqValue(): void {
+        // Callers URL-encode filter values (e.g. spaces as %20) because the
+        // Supabase/PostgREST backend expects encoded query strings. The SQLite
+        // backend must decode them too, or multi-word values never match.
+        $farms = $this->db->select('farm', 'farm_id,farm_name,irrigation_type', [
+            'irrigation_type=eq.' . rawurlencode('Drip Irrigation'),
+        ]);
+        $this->assertCount(3, $farms);
+        foreach ($farms as $f) {
+            $this->assertEquals('Drip Irrigation', $f['irrigation_type']);
+        }
+    }
+
+    public function testSelectWithUrlEncodedOrFilter(): void {
+        $farms = $this->db->select('farm', 'farm_id,farm_name', [
+            'or=(farm_name.eq.' . rawurlencode('Castillo Agricultural Farm') . ',location.eq.Nowhere)',
+        ]);
+        $this->assertCount(1, $farms);
+        $this->assertEquals('Castillo Agricultural Farm', $farms[0]['farm_name']);
+    }
+
     public function testSelectWithIlikeFilter(): void {
         $farmers = $this->db->select('farmer', 'farmer_id,first_name', ['first_name=ilike.%Juan%']);
         $this->assertIsArray($farmers);
