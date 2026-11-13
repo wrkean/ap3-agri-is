@@ -91,9 +91,10 @@ class Database {
         foreach ($joins as $j) $sql .= " " . $j;
 
         $where = []; $params = [];
+        $qualifier = $joins ? $table . '.' : '';
         foreach ($filters as $f) {
             if (!is_string($f)) continue;
-            $parsed = $this->parseFilter($f);
+            $parsed = $this->parseFilter($f, $qualifier);
             if ($parsed) {
                 $where[] = $parsed['sql'];
                 foreach ($parsed['params'] as $p) $params[] = $p;
@@ -105,9 +106,9 @@ class Database {
             $order = $options['order'];
             if (strpos($order, '.') !== false) {
                 [$col, $dir] = explode('.', $order, 2);
-                $sql .= " ORDER BY $col " . (strtolower($dir) === 'desc' ? 'DESC' : 'ASC');
+                $sql .= " ORDER BY $qualifier$col " . (strtolower($dir) === 'desc' ? 'DESC' : 'ASC');
             } else {
-                $sql .= " ORDER BY $order";
+                $sql .= " ORDER BY $qualifier$order";
             }
         }
         if (isset($options['limit'])) $sql .= " LIMIT " . (int)$options['limit'];
@@ -318,7 +319,7 @@ class Database {
         return $result;
     }
 
-    private function parseFilter(string $filter): ?array {
+    private function parseFilter(string $filter, string $qualifier = ''): ?array {
         // Handle or=(col1.op.val1,col2.op.val2,...)
         if (preg_match('/^or=\((.+)\)$/', $filter, $m)) {
             $inner = $m[1];
@@ -337,7 +338,7 @@ class Database {
             $params = [];
             foreach ($parts as $part) {
                 if (!preg_match('/^(\w+)\.([a-z]+)\.(.+)$/', $part, $mm)) continue;
-                $col = $mm[1]; $op = $mm[2]; $val = urldecode($mm[3]);
+                $col = $qualifier . $mm[1]; $op = $mm[2]; $val = urldecode($mm[3]);
                 switch ($op) {
                     case 'ilike':
                     case 'like':
@@ -349,6 +350,15 @@ class Database {
                         $sqlParts[] = "$col = ?";
                         $params[] = $val;
                         break;
+                    case 'in':
+                        $items = array_values(array_filter(array_map('trim', explode(',', trim($val, '()'))), 'strlen'));
+                        if (!$items) {
+                            $sqlParts[] = '0 = 1';
+                            break;
+                        }
+                        $sqlParts[] = "$col IN (" . implode(', ', array_fill(0, count($items), '?')) . ")";
+                        foreach ($items as $item) $params[] = $item;
+                        break;
                     default:
                         $sqlParts[] = "$col = ?";
                         $params[] = $val;
@@ -359,9 +369,16 @@ class Database {
         }
 
         if (!preg_match('/^(\w+)=([a-z]+)\.(.+)$/', $filter, $m)) return null;
-        $col = $m[1]; $op = $m[2]; $val = urldecode($m[3]);
+        $col = $qualifier . $m[1]; $op = $m[2]; $val = urldecode($m[3]);
         switch ($op) {
             case 'eq': return ['sql' => "$col = ?", 'params' => [$val]];
+            case 'in':
+                $items = array_values(array_filter(array_map('trim', explode(',', trim($val, '()'))), 'strlen'));
+                if (!$items) return ['sql' => '0 = 1', 'params' => []];
+                return [
+                    'sql' => "$col IN (" . implode(', ', array_fill(0, count($items), '?')) . ")",
+                    'params' => $items,
+                ];
             case 'ilike':
             case 'like':
                 $val = str_replace('%', '', $val);
@@ -433,6 +450,13 @@ class Database {
         if (isset($pkCache[$table])) return $pkCache[$table];
         // Known PKs
         $known = [
+            'crop_category' => 'crop_category_id',
+            'season' => 'season_id',
+            'soil_type' => 'soil_type_id',
+            'irrigation_type' => 'irrigation_type_id',
+            'planting_status' => 'planting_status_id',
+            'quality_grade' => 'quality_grade_id',
+            'species' => 'species_id',
             'crop' => 'crop_id',
             'farmer' => 'farmer_id',
             'farm' => 'farm_id',

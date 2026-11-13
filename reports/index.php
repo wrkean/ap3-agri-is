@@ -17,40 +17,43 @@ $reportType = $_GET['report'] ?? 'farmers_farms';
 $dateFrom = $_GET['date_from'] ?? '';
 $dateTo = $_GET['date_to'] ?? '';
 
+// Validate and apply the date range to the report's natural date column.
+$dateColumn = match ($reportType) {
+    'farmers_farms' => 'date_registered',
+    'crops_per_farm', 'planting_status' => 'planting_date',
+    default => 'harvest_date',
+};
+$dateFilters = [];
+if ($dateFrom !== '' && DateTime::createFromFormat('Y-m-d', $dateFrom)) {
+    $dateFilters[] = $dateColumn . '=gte.' . $dateFrom;
+}
+if ($dateTo !== '' && DateTime::createFromFormat('Y-m-d', $dateTo)) {
+    $dateFilters[] = $dateColumn . '=lte.' . $dateTo;
+}
+
 // Fetch data based on report type
 $reportData = [];
 switch ($reportType) {
     case 'farmers_farms':
-        $farmers = $farmerModel->all();
-        $reportData['farmers'] = $farmers;
+        $reportData['farmers'] = $farmerModel->allWithFarms($dateFilters);
         break;
     case 'crops_per_farm':
-        $plantings = $plantingModel->all([], ['limit' => 500]);
-        $reportData['plantings'] = $plantings;
+        $reportData['plantings'] = $plantingModel->all($dateFilters, ['limit' => 500]);
         break;
     case 'planting_status':
-        $plantings = $plantingModel->all([], ['limit' => 500]);
-        $reportData['plantings'] = $plantings;
+        $reportData['plantings'] = $plantingModel->all($dateFilters, ['limit' => 500]);
         break;
     case 'harvest_records':
-        $harvests = $harvestModel->all(
-            [],
-            ['limit' => 500],
-        );
-        $reportData['harvests'] = $harvests;
+        $reportData['harvests'] = $harvestModel->all($dateFilters, ['limit' => 500]);
         break;
     case 'total_harvested':
-        $harvests = $harvestModel->all([], ['limit' => 500]);
-        $reportData['harvests'] = $harvests;
+        $reportData['harvests'] = $harvestModel->all($dateFilters, ['limit' => 500]);
         break;
     case 'harvest_value':
-        $harvests = $harvestModel->all(
-            [],
-            ['limit' => 500],
-        );
-        $reportData['harvests'] = $harvests;
+        $reportData['harvests'] = $harvestModel->all($dateFilters, ['limit' => 500]);
         break;
 }
+$cropLabels = $cropModel->labels();
 ?>
 <h1 class="text-2xl font-bold text-gray-800 mb-6 fade-in">Reports</h1>
 
@@ -139,10 +142,14 @@ switch ($reportType) {
                     <?php foreach ($reportData['plantings'] as $p): ?>
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-3 text-gray-700"><?php echo e($p['farm']['farm_name'] ?? '—'); ?></td>
-                            <td class="px-6 py-3 text-gray-700"><?php echo e($p['crop']['crop_name'] ?? '—'); ?></td>
+                            <td class="px-6 py-3 text-gray-700"><?php echo e(
+                                ($p['crop']['species']['crop_name'] ?? '—') . ' — ' . ($p['crop']['variety'] ?? ''),
+                            ); ?></td>
                             <td class="px-6 py-3 text-gray-700"><?php echo e($p['planting_date']); ?></td>
                             <td class="px-6 py-3 text-gray-700"><?php echo number_format($p['area_planted'], 2); ?></td>
-                            <td class="px-6 py-3 text-gray-700"><?php echo e($p['status']); ?></td>
+                            <td class="px-6 py-3 text-gray-700"><?php echo e(
+                                $p['planting_status']['status_name'] ?? '—',
+                            ); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -157,7 +164,8 @@ switch ($reportType) {
                     <?php
                     $statusCounts = [];
                     foreach ($reportData['plantings'] as $p) {
-                        $statusCounts[$p['status']] = ($statusCounts[$p['status']] ?? 0) + 1;
+                        $name = $p['planting_status']['status_name'] ?? 'Unknown';
+                        $statusCounts[$name] = ($statusCounts[$name] ?? 0) + 1;
                     }
                     foreach ($statusCounts as $st => $cnt): ?>
                         <tr class="hover:bg-gray-50">
@@ -182,7 +190,7 @@ switch ($reportType) {
                                 $h['planting']['farm']['farm_name'] ?? '—',
                             ); ?></td>
                             <td class="px-6 py-3 text-gray-700"><?php echo e(
-                                $h['planting']['crop']['crop_name'] ?? '—',
+                                $cropLabels[(int) ($h['planting']['crop']['crop_id'] ?? 0)] ?? '—',
                             ); ?></td>
                             <td class="px-6 py-3 text-gray-700"><?php echo e($h['harvest_date']); ?></td>
                             <td class="px-6 py-3 text-gray-700"><?php echo number_format($h['quantity_kg'], 2); ?></td>
@@ -190,7 +198,9 @@ switch ($reportType) {
                                 $h['selling_price_per_kg'],
                                 2,
                             ); ?></td>
-                            <td class="px-6 py-3 text-gray-700"><?php echo e($h['quality_grade']); ?></td>
+                            <td class="px-6 py-3 text-gray-700"><?php echo e(
+                                $h['quality_grade']['grade_name'] ?? '—',
+                            ); ?></td>
                             <td class="px-6 py-3 text-gray-700 font-medium">₱<?php echo number_format(
                                 $h['quantity_kg'] * $h['selling_price_per_kg'],
                                 2,
@@ -233,7 +243,7 @@ switch ($reportType) {
                                 $h['planting']['farm']['farm_name'] ?? '—',
                             ); ?></td>
                             <td class="px-6 py-3 text-gray-700"><?php echo e(
-                                $h['planting']['crop']['crop_name'] ?? '—',
+                                $cropLabels[(int) ($h['planting']['crop']['crop_id'] ?? 0)] ?? '—',
                             ); ?></td>
                             <td class="px-6 py-3 text-gray-700"><?php echo number_format($h['quantity_kg'], 2); ?></td>
                             <td class="px-6 py-3 text-gray-700">₱<?php echo number_format(

@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'area_planted' => trim($_POST['area_planted'] ?? ''),
         'seed_quantity' => trim($_POST['seed_quantity'] ?? ''),
         'expected_harvest_date' => trim($_POST['expected_harvest_date'] ?? ''),
-        'status' => trim($_POST['status'] ?? 'Growing'),
+        'planting_status_id' => (int) ($_POST['planting_status_id'] ?? 0),
     ];
     $errors = [];
     if (!$data['farm_id']) {
@@ -41,6 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if ($data['expected_harvest_date'] < $data['planting_date']) {
         $errors[] = 'Expected harvest must be after planting date.';
+    }
+    if (!$data['planting_status_id']) {
+        $errors[] = 'Status is required.';
     }
     if ($errors) {
         flash('error', implode(' ', $errors));
@@ -77,10 +80,11 @@ $pageTitle = 'Planting Records';
 
 $farms = $farmModel->all();
 $crops = $cropModel->all();
+$statusOptions = $db->select('planting_status', 'planting_status_id,status_name', [], ['order' => 'planting_status_id.asc']);
 
 $search = trim($_GET['search'] ?? '');
-$statusFilter = $_GET['status'] ?? '';
-$farmFilter = $_GET['farm'] ?? '';
+$statusFilter = (int) ($_GET['status'] ?? 0);
+$farmFilter = (int) ($_GET['farm'] ?? 0);
 $sort = $_GET['sort'] ?? 'planting_id';
 $dir = $_GET['dir'] ?? 'asc';
 $page = (int) ($_GET['page'] ?? 1);
@@ -89,11 +93,11 @@ $filters = [];
 if ($search !== '') {
     $filters[] = 'planting_date=ilike.%' . rawurlencode($search) . '%';
 }
-if ($statusFilter !== '') {
-    $filters[] = 'status=eq.' . rawurlencode($statusFilter);
+if ($statusFilter > 0) {
+    $filters[] = 'planting_status_id=eq.' . $statusFilter;
 }
-if ($farmFilter !== '') {
-    $filters[] = 'farm_id=eq.' . (int) $farmFilter;
+if ($farmFilter > 0) {
+    $filters[] = 'farm_id=eq.' . $farmFilter;
 }
 
 $countRows = $db->select('planting', 'planting_id', $filters);
@@ -108,8 +112,6 @@ $editRow = null;
 if ($action === 'edit' && $id > 0) {
     $editRow = $plantingModel->find($id);
 }
-
-$statusOptions = ['Growing', 'Harvested', 'Failed'];
 ?>
 <?php if ($action === 'create' || $action === 'edit'): ?>
     <div class="max-w-xl fade-in">
@@ -141,7 +143,7 @@ $statusOptions = ['Growing', 'Harvested', 'Failed'];
                             <?php foreach ($crops as $c): ?><option value="<?php echo $c[
     'crop_id'
 ]; ?>"<?php echo ($editRow['crop_id'] ?? 0) == $c['crop_id'] ? ' selected' : ''; ?>><?php echo e(
-    $c['crop_name'],
+    ($c['species']['crop_name'] ?? 'Crop') . ' — ' . $c['variety'],
 ); ?></option><?php endforeach; ?>
                         </select>
                     </div>
@@ -176,11 +178,12 @@ $statusOptions = ['Growing', 'Harvested', 'Failed'];
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Status <span class="text-red-500">*</span></label>
-                    <select name="status" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
-                        <?php foreach ($statusOptions as $o): ?><option value="<?php echo e(
-    $o,
-); ?>"<?php echo ($editRow['status'] ?? '') == $o ? ' selected' : ''; ?>><?php echo e(
-    $o,
+                    <select name="planting_status_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="">Select status</option>
+                        <?php foreach ($statusOptions as $o): ?><option value="<?php echo $o[
+    'planting_status_id'
+]; ?>"<?php echo ($editRow['planting_status_id'] ?? 0) == $o['planting_status_id'] ? ' selected' : ''; ?>><?php echo e(
+    $o['status_name'],
 ); ?></option><?php endforeach; ?>
                     </select>
                 </div>
@@ -216,9 +219,11 @@ $statusOptions = ['Growing', 'Harvested', 'Failed'];
                 <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
                 <select id="statusFilter" name="status" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
                     <option value="">All</option>
-                    <?php foreach ($statusOptions as $o): ?><option value="<?php echo e(
-    $o,
-); ?>"<?php echo $statusFilter === $o ? ' selected' : ''; ?>><?php echo e($o); ?></option><?php endforeach; ?>
+                    <?php foreach ($statusOptions as $o): ?><option value="<?php echo $o[
+    'planting_status_id'
+]; ?>"<?php echo $statusFilter === (int) $o['planting_status_id']
+    ? ' selected'
+    : ''; ?>><?php echo e($o['status_name']); ?></option><?php endforeach; ?>
                 </select>
             </div>
             <div class="relative w-full md:w-1/3">
@@ -227,26 +232,22 @@ $statusOptions = ['Growing', 'Harvested', 'Failed'];
                     <option value="">All</option>
                     <?php foreach ($farms as $f): ?><option value="<?php echo $f[
     'farm_id'
-]; ?>"<?php echo $farmFilter == $f['farm_id'] ? ' selected' : ''; ?>><?php echo e(
+]; ?>"<?php echo $farmFilter === (int) $f['farm_id'] ? ' selected' : ''; ?>><?php echo e(
     $f['farm_name'],
 ); ?></option><?php endforeach; ?>
                 </select>
             </div>
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition flex items-center gap-2"><i class="fa-solid fa-search"></i> Search</button>
             <div class="flex gap-2">
-                <a href="index.php?search=<?php echo rawurlencode($search); ?>&status=<?php echo rawurlencode(
-    $statusFilter,
-); ?>&farm=<?php echo rawurlencode(
-    $farmFilter,
-); ?>&sort=planting_id&dir=asc" class="px-4 py-2 text-sm font-medium rounded transition <?php echo $sort ===
+                <a href="index.php?search=<?php echo rawurlencode($search); ?>&status=<?php echo $statusFilter
+    ?: ''; ?>&farm=<?php echo $farmFilter
+    ?: ''; ?>&sort=planting_id&dir=asc" class="px-4 py-2 text-sm font-medium rounded transition <?php echo $sort ===
 'planting_id'
     ? 'bg-blue-50 text-blue-600'
     : 'border border-gray-200 text-gray-700 hover:bg-gray-50'; ?>">Sort by ID</a>
-                <a href="index.php?search=<?php echo rawurlencode($search); ?>&status=<?php echo rawurlencode(
-    $statusFilter,
-); ?>&farm=<?php echo rawurlencode(
-    $farmFilter,
-); ?>&sort=planting_date&dir=asc" class="px-4 py-2 text-sm font-medium rounded transition <?php echo $sort ===
+                <a href="index.php?search=<?php echo rawurlencode($search); ?>&status=<?php echo $statusFilter
+    ?: ''; ?>&farm=<?php echo $farmFilter
+    ?: ''; ?>&sort=planting_date&dir=asc" class="px-4 py-2 text-sm font-medium rounded transition <?php echo $sort ===
 'planting_date'
     ? 'bg-blue-50 text-blue-600'
     : 'border border-gray-200 text-gray-700 hover:bg-gray-50'; ?>">Sort by Date</a>
@@ -269,20 +270,24 @@ $statusOptions = ['Growing', 'Harvested', 'Failed'];
                 </thead>
                 <tbody class="divide-y divide-gray-50">
                     <?php foreach ($rows as $r): ?>
+                        <?php
+                        $statusName = $r['planting_status']['status_name'] ?? '—';
+                        $cropLabel = ($r['crop']['species']['crop_name'] ?? '—') . ' — ' . ($r['crop']['variety'] ?? '');
+                        ?>
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-3 font-medium text-gray-900">#<?php echo $r['planting_id']; ?></td>
                             <td class="px-6 py-3 text-gray-700"><?php echo e($r['farm']['farm_name'] ?? '—'); ?></td>
-                            <td class="px-6 py-3 text-gray-700"><?php echo e($r['crop']['crop_name'] ?? '—'); ?></td>
+                            <td class="px-6 py-3 text-gray-700"><?php echo e($cropLabel); ?></td>
                             <td class="px-6 py-3 text-gray-700"><?php echo e($r['planting_date']); ?></td>
                             <td class="px-6 py-3 text-gray-700"><?php echo e($r['expected_harvest_date']); ?></td>
                             <td class="px-6 py-3 text-gray-700"><?php echo number_format($r['area_planted'], 2); ?></td>
                             <td class="px-6 py-3">
-                                <span class="status-badge <?php echo $r['status'] === 'Harvested'
+                                <span class="status-badge <?php echo $statusName === 'Harvested'
                                     ? 'bg-green-100 text-green-700'
-                                    : ($r['status'] === 'Growing'
+                                    : ($statusName === 'Growing'
                                         ? 'bg-blue-100 text-blue-700'
                                         : 'bg-gray-100 text-gray-700'); ?>">
-                                    <?php echo e($r['status']); ?>
+                                    <?php echo e($statusName); ?>
                                 </span>
                             </td>
                             <td class="px-6 py-3 text-right">
@@ -307,8 +312,8 @@ $statusOptions = ['Growing', 'Harvested', 'Failed'];
                         http_build_query(
                             array_filter([
                                 'search' => $search,
-                                'status' => $statusFilter,
-                                'farm' => $farmFilter,
+                                'status' => $statusFilter ?: '',
+                                'farm' => $farmFilter ?: '',
                                 'sort' => $sort,
                                 'dir' => $dir,
                             ]),

@@ -11,6 +11,16 @@ class Farmer {
         return $this->db->select('farmer', '*', $filters, $options);
     }
 
+    /** Farmers with their farms (1:M) for the farmers-and-farms report. */
+    public function allWithFarms(array $filters = [], array $options = []): array {
+        return $this->db->select(
+            'farmer',
+            '*,farm(farm_name,location,area_hectares)',
+            $filters,
+            $options,
+        );
+    }
+
     public function find(int $id): ?array {
         return $this->db->find('farmer', $id, 'farmer_id');
     }

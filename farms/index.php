@@ -16,8 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'farm_name' => trim($_POST['farm_name'] ?? ''),
         'location' => trim($_POST['location'] ?? ''),
         'area_hectares' => trim($_POST['area_hectares'] ?? ''),
-        'soil_type' => trim($_POST['soil_type'] ?? ''),
-        'irrigation_type' => trim($_POST['irrigation_type'] ?? ''),
+        'soil_type_id' => (int) ($_POST['soil_type_id'] ?? 0),
+        'irrigation_type_id' => (int) ($_POST['irrigation_type_id'] ?? 0),
     ];
     $errors = [];
     if (!$data['farmer_id']) {
@@ -32,10 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!is_numeric($data['area_hectares']) || $data['area_hectares'] <= 0) {
         $errors[] = 'Area must be a positive number.';
     }
-    if (empty($data['soil_type'])) {
+    if (!$data['soil_type_id']) {
         $errors[] = 'Soil type is required.';
     }
-    if (empty($data['irrigation_type'])) {
+    if (!$data['irrigation_type_id']) {
         $errors[] = 'Irrigation type is required.';
     }
     if ($errors) {
@@ -71,12 +71,14 @@ if ($action === 'delete' && $id > 0) {
 
 $pageTitle = 'Farms';
 
-// Fetch farmers for dropdown
+// Reference data for dropdowns (lookup IDs are stored, labels are displayed)
 $farmers = $farmerModel->all();
+$soilOptions = $db->select('soil_type', 'soil_type_id,type_name', [], ['order' => 'soil_type_id.asc']);
+$irrOptions = $db->select('irrigation_type', 'irrigation_type_id,type_name', [], ['order' => 'irrigation_type_id.asc']);
 
 // Search/filter/sort/pagination
 $search = trim($_GET['search'] ?? '');
-$irrFilter = $_GET['irrigation'] ?? '';
+$irrFilter = (int) ($_GET['irrigation'] ?? 0);
 $sort = $_GET['sort'] ?? 'farm_id';
 $dir = $_GET['dir'] ?? 'asc';
 $page = (int) ($_GET['page'] ?? 1);
@@ -89,8 +91,8 @@ if ($search !== '') {
         $filters[] = 'or=(farm_name.ilike.%' . $w . '%,location.ilike.%' . $w . '%)';
     }
 }
-if ($irrFilter !== '') {
-    $filters[] = 'irrigation_type=eq.' . rawurlencode($irrFilter);
+if ($irrFilter > 0) {
+    $filters[] = 'irrigation_type_id=eq.' . $irrFilter;
 }
 
 $countRows = $db->select('farm', 'farm_id', $filters);
@@ -106,9 +108,6 @@ $editRow = null;
 if ($action === 'edit' && $id > 0) {
     $editRow = $farmModel->find($id);
 }
-
-// Irrigation options for dropdown
-$irrOptions = ['Rainfed', 'Irrigated', 'Drip Irrigation'];
 ?>
 <?php if ($action === 'create' || $action === 'edit'): ?>
     <div class="max-w-xl fade-in">
@@ -155,21 +154,25 @@ $irrOptions = ['Rainfed', 'Irrigated', 'Drip Irrigation'];
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Soil Type <span class="text-red-500">*</span></label>
-                        <input type="text" name="soil_type" required value="<?php echo e(
-                            $editRow['soil_type'] ?? ($_POST['soil_type'] ?? ''),
-                        ); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                        <select name="soil_type_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                            <option value="">Select soil type</option>
+                            <?php foreach ($soilOptions as $o): ?><option value="<?php echo $o[
+    'soil_type_id'
+]; ?>"<?php echo ($editRow['soil_type_id'] ?? 0) == $o['soil_type_id'] ? ' selected' : ''; ?>><?php echo e(
+    $o['type_name'],
+); ?></option><?php endforeach; ?>
+                        </select>
                     </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Irrigation Type <span class="text-red-500">*</span></label>
-                    <select name="irrigation_type" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
-                        <?php foreach ($irrOptions as $o): ?><option value="<?php echo e($o); ?>"<?php echo ($editRow[
-    'irrigation_type'
-] ??
-    '') ==
-$o
-    ? ' selected'
-    : ''; ?>><?php echo e($o); ?></option><?php endforeach; ?>
+                    <select name="irrigation_type_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                        <option value="">Select irrigation type</option>
+                        <?php foreach ($irrOptions as $o): ?><option value="<?php echo $o[
+    'irrigation_type_id'
+]; ?>"<?php echo ($editRow['irrigation_type_id'] ?? 0) == $o['irrigation_type_id'] ? ' selected' : ''; ?>><?php echo e(
+    $o['type_name'],
+); ?></option><?php endforeach; ?>
                     </select>
                 </div>
                 <div class="flex gap-3">
@@ -204,22 +207,21 @@ $o
                 <label class="block text-xs font-medium text-gray-500 mb-1">Irrigation Type</label>
                 <select id="irrigationFilter" name="irrigation" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
                     <option value="">All</option>
-                    <?php foreach ($irrOptions as $o): ?><option value="<?php echo e($o); ?>"<?php echo $irrFilter ===
-$o
+                    <?php foreach ($irrOptions as $o): ?><option value="<?php echo $o[
+    'irrigation_type_id'
+]; ?>"<?php echo $irrFilter === (int) $o['irrigation_type_id']
     ? ' selected'
-    : ''; ?>><?php echo e($o); ?></option><?php endforeach; ?>
+    : ''; ?>><?php echo e($o['type_name']); ?></option><?php endforeach; ?>
                 </select>
             </div>
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition flex items-center gap-2"><i class="fa-solid fa-search"></i> Search</button>
             <div class="flex gap-2">
-                <a href="index.php?search=<?php echo rawurlencode($search); ?>&irrigation=<?php echo rawurlencode(
-    $irrFilter,
-); ?>&sort=farm_id&dir=asc" class="px-4 py-2 text-sm font-medium rounded transition <?php echo $sort === 'farm_id'
+                <a href="index.php?search=<?php echo rawurlencode($search); ?>&irrigation=<?php echo $irrFilter
+    ?: ''; ?>&sort=farm_id&dir=asc" class="px-4 py-2 text-sm font-medium rounded transition <?php echo $sort === 'farm_id'
     ? 'bg-blue-50 text-blue-600'
     : 'border border-gray-200 text-gray-700 hover:bg-gray-50'; ?>">Sort by ID</a>
-                <a href="index.php?search=<?php echo rawurlencode($search); ?>&irrigation=<?php echo rawurlencode(
-    $irrFilter,
-); ?>&sort=farm_name&dir=asc" class="px-4 py-2 text-sm font-medium rounded transition <?php echo $sort === 'farm_name'
+                <a href="index.php?search=<?php echo rawurlencode($search); ?>&irrigation=<?php echo $irrFilter
+    ?: ''; ?>&sort=farm_name&dir=asc" class="px-4 py-2 text-sm font-medium rounded transition <?php echo $sort === 'farm_name'
     ? 'bg-blue-50 text-blue-600'
     : 'border border-gray-200 text-gray-700 hover:bg-gray-50'; ?>">Sort by Name</a>
             </div>
@@ -252,8 +254,12 @@ $o
                                 $r['area_hectares'],
                                 2,
                             ); ?></td>
-                            <td class="px-6 py-3 text-gray-700"><?php echo e($r['soil_type']); ?></td>
-                            <td class="px-6 py-3 text-gray-700"><?php echo e($r['irrigation_type']); ?></td>
+                            <td class="px-6 py-3 text-gray-700"><?php echo e(
+                                $r['soil_type']['type_name'] ?? '—',
+                            ); ?></td>
+                            <td class="px-6 py-3 text-gray-700"><?php echo e(
+                                $r['irrigation_type']['type_name'] ?? '—',
+                            ); ?></td>
                             <td class="px-6 py-3 text-right">
                                 <a href="index.php?action=edit&id=<?php echo $r[
                                     'farm_id'
@@ -276,7 +282,7 @@ $o
                         http_build_query(
                             array_filter([
                                 'search' => $search,
-                                'irrigation' => $irrFilter,
+                                'irrigation' => $irrFilter ?: '',
                                 'sort' => $sort,
                                 'dir' => $dir,
                             ]),
