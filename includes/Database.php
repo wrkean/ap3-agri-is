@@ -32,7 +32,9 @@ class Database {
             $this->supabase = new Supabase();
         } else {
             $this->driver = 'sqlite';
-            $dbPath = __DIR__ . '/../database/agri.db';
+            // AGRI_DB_PATH lets the test suite run against a throwaway copy so
+            // the shipped database/agri.db is never mutated by test writes.
+            $dbPath = getenv('AGRI_DB_PATH') ?: __DIR__ . '/../database/agri.db';
             $this->pdo = new PDO('sqlite:' . $dbPath);
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->pdo->exec('PRAGMA foreign_keys = ON');
