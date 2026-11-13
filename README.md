@@ -42,25 +42,18 @@ in `crop` (with their growing period and recommended season), which removes the
 
 ## Setup
 
-The app supports **two database backends** and auto-detects which to use:
+The app connects exclusively to **Supabase PostgreSQL** via the REST API:
 
-### Option A: SQLite (no setup required — default)
+### Supabase PostgreSQL (required)
 
-A pre-built SQLite database is included at `database/agri.db`. Just run:
+This project runs exclusively on Supabase PostgreSQL. There is no local SQLite
+fallback. Follow the Supabase setup instructions above, then run:
 
 ```bash
 php -S localhost:8000
 ```
 
 Then open http://localhost:8000 in your browser. Login with `admin@example.com` / `admin123`.
-
-To rebuild the SQLite database from scratch:
-
-```bash
-php database/build_sqlite.php
-```
-
-### Option B: Supabase PostgreSQL
 
 Follow the detailed instructions in `~/Documents/supabase-setup-ap3.md` to:
 - Create a Supabase project
@@ -74,7 +67,7 @@ cp .env.example .env
 # Edit .env and paste your Supabase URL and anon key
 ```
 
-The app will automatically use Supabase when `.env` is configured. Otherwise it falls back to SQLite.
+The app requires `.env` with valid Supabase credentials; there is no local fallback.
 
 ## Credentials (demo)
 
@@ -92,7 +85,7 @@ vendor/bin/phpunit            # 57 tests, 225 assertions
 
 The suite covers the query layer (filters, `in` lists, joins, nested selects,
 pagination, aggregates), CRUD workflows, the seeded lookup data, and the
-authentication/role rules. Tests run against the SQLite backend.
+authentication/role rules. Tests run against the Supabase backend.
 
 ## Deliverables
 

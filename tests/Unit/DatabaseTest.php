@@ -7,8 +7,8 @@ class DatabaseTest extends TestCase {
 
     protected function setUp(): void {
         $this->db = new Database();
-        // Ensure we're using SQLite
-        $this->assertEquals('sqlite', $this->db->getDriver());
+        // Ensure we're using Supabase
+        $this->assertEquals('supabase', $this->db->getDriver());
     }
 
     public function testSelectAllCrops(): void {
@@ -55,8 +55,8 @@ class DatabaseTest extends TestCase {
 
     public function testSelectWithUrlEncodedEqValue(): void {
         // Callers URL-encode filter values (e.g. spaces as %20) because the
-        // Supabase/PostgREST backend expects encoded query strings. The SQLite
-        // backend must decode them too, or multi-word values never match.
+        // Supabase/PostgREST backend expects encoded query strings; the client
+        // must decode them so multi-word values match.
         // irrigation_type_id = 3 is "Drip Irrigation".
         $farms = $this->db->select('farm', 'farm_id,farm_name,irrigation_type(type_name)', [
             'irrigation_type_id=eq.3',
@@ -196,7 +196,8 @@ class DatabaseTest extends TestCase {
     }
 
     public function testAggregateCount(): void {
-        $statusCounts = $this->db->select('planting', 'planting_status_id,count');
+        $plantingModel = new Planting($this->db);
+        $statusCounts = $plantingModel->byStatus();
         $this->assertIsArray($statusCounts);
         $this->assertNotEmpty($statusCounts);
         foreach ($statusCounts as $row) {

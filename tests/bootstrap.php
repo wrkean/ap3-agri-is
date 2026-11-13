@@ -1,23 +1,7 @@
 <?php
 // tests/bootstrap.php
 
-// Force SQLite driver for the entire test suite, regardless of .env contents.
-putenv('AGRI_FORCE_SQLITE=1');
-
-// Run the suite against a throwaway copy of the seeded database so test
-// inserts/deletes never modify the shipped database/agri.db artifact.
-$source = __DIR__ . '/../database/agri.db';
-if (is_file($source)) {
-    $tmp = sys_get_temp_dir() . '/ap3-agri-test-' . getmypid() . '.db';
-    copy($source, $tmp);
-    putenv('AGRI_DB_PATH=' . $tmp);
-    register_shutdown_function(static function () use ($tmp): void {
-        if (is_file($tmp)) {
-            @unlink($tmp);
-        }
-    });
-}
-
 require_once __DIR__ . '/../includes/Database.php';
 require_once __DIR__ . '/../includes/crud.php';
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/models.php';

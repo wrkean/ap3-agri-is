@@ -59,9 +59,20 @@ class Planting
         return count($this->db->select('planting', 'planting_id'));
     }
 
-    /** Planting counts grouped by planting_status_id. */
+    /** Planting counts grouped by planting_status_id (counted in PHP because
+     * Supabase/PostgREST disables aggregate functions by default). */
     public function byStatus(): array
     {
-        return $this->db->select('planting', 'planting_status_id,count');
+        $rows = $this->db->select('planting', 'planting_status_id');
+        $counts = [];
+        foreach ($rows as $row) {
+            $id = (int) ($row['planting_status_id'] ?? 0);
+            $counts[$id] = ($counts[$id] ?? 0) + 1;
+        }
+        $result = [];
+        foreach ($counts as $id => $count) {
+            $result[] = ['planting_status_id' => $id, 'count' => $count];
+        }
+        return $result;
     }
 }

@@ -11,8 +11,7 @@ class Crop
 
     /**
      * Crop varieties with their species, category and season labels.
-     * The nested select is resolved natively by Supabase/PostgREST and by
-     * the SQLite join parser in Database::sqliteSelect().
+     * The nested select is resolved natively by Supabase/PostgREST.
      */
     public function all(array $filters = [], array $options = []): array
     {
@@ -93,7 +92,7 @@ class Crop
 
     /**
      * Map crop_id => "Species — Variety" for pages that cannot nest three
-     * relation levels deep through the SQLite parser.
+     * relation levels deep through the Supabase join.
      */
     public function labels(): array
     {
