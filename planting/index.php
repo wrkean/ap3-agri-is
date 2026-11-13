@@ -3,7 +3,10 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/crud.php';
 requireAuth();
 
-$sb = new Database();
+$db = new Database();
+$plantingModel = new Planting($db);
+$farmModel = new Farm($db);
+$cropModel = new Crop($db);
 $action = $_GET['action'] ?? 'list';
 $id = (int) ($_GET['id'] ?? 0);
 
@@ -45,13 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
     if ($action === 'create') {
-        $sb->insert('planting', $data);
+        $plantingModel->create($data);
         flash('success', 'Planting record created.');
         header('Location: planting/index.php');
         exit();
     }
     if ($action === 'edit' && $id > 0) {
-        $sb->update('planting', $data, ['planting_id=eq.' . $id]);
+        $plantingModel->update($id, $data);
         flash('success', 'Planting updated.');
         header('Location: planting/index.php');
         exit();
@@ -59,11 +62,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($action === 'delete' && $id > 0) {
-    $harvests = $sb->select('harvest', 'harvest_id', ['planting_id=eq.' . $id]);
+    $harvests = $db->select('harvest', 'harvest_id', ['planting_id=eq.' . $id]);
     if (!empty($harvests)) {
         flash('error', 'Cannot delete planting: has harvest records.');
     } else {
-        $sb->delete('planting', ['planting_id=eq.' . $id]);
+        $plantingModel->delete($id);
         flash('success', 'Planting deleted.');
     }
     header('Location: planting/index.php');
@@ -72,8 +75,8 @@ if ($action === 'delete' && $id > 0) {
 
 $pageTitle = 'Planting Records';
 
-$farms = $sb->select('farm', 'farm_id,farm_name');
-$crops = $sb->select('crop', 'crop_id,crop_name');
+$farms = $farmModel->all();
+$crops = $cropModel->all();
 
 $search = trim($_GET['search'] ?? '');
 $statusFilter = $_GET['status'] ?? '';
@@ -93,18 +96,17 @@ if ($farmFilter !== '') {
     $filters[] = 'farm_id=eq.' . (int) $farmFilter;
 }
 
-$countRows = $sb->select('planting', 'planting_id', $filters);
+$countRows = $db->select('planting', 'planting_id', $filters);
 $total = count($countRows);
 $p = pagination($page, $total);
-$rows = $sb->select(
-    'planting',
-    '*,farm(farm_name),crop(crop_name)',
-    $filters, ['order' => $sort . '.' . $dir, 'limit' => $p['limit'], 'offset' => $p['offset']],
+$rows = $plantingModel->all(
+    $filters,
+    ['order' => $sort . '.' . $dir, 'limit' => $p['limit'], 'offset' => $p['offset']],
 );
 
 $editRow = null;
 if ($action === 'edit' && $id > 0) {
-    $editRow = $sb->find('planting', $id, 'planting_id');
+    $editRow = $plantingModel->find($id);
 }
 
 $statusOptions = ['Growing', 'Harvested', 'Failed'];

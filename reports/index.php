@@ -4,7 +4,12 @@ require_once __DIR__ . '/../includes/crud.php';
 requireAuth();
 requireAdmin();
 
-$sb = new Database();
+$db = new Database();
+$farmerModel = new Farmer($db);
+$farmModel = new Farm($db);
+$cropModel = new Crop($db);
+$plantingModel = new Planting($db);
+$harvestModel = new Harvest($db);
 $pageTitle = 'Reports';
 
 // Report filters
@@ -16,34 +21,30 @@ $dateTo = $_GET['date_to'] ?? '';
 $reportData = [];
 switch ($reportType) {
     case 'farmers_farms':
-        $farmers = $sb->select('farmer', '*,farm(*)');
+        $farmers = $farmerModel->all();
         $reportData['farmers'] = $farmers;
         break;
     case 'crops_per_farm':
-        $plantings = $sb->select('planting', '*,farm(farm_name),crop(crop_name)', [], ['limit' => 500]);
+        $plantings = $plantingModel->all([], ['limit' => 500]);
         $reportData['plantings'] = $plantings;
         break;
     case 'planting_status':
-        $plantings = $sb->select('planting', '*,farm(farm_name),crop(crop_name)', [], ['limit' => 500]);
+        $plantings = $plantingModel->all([], ['limit' => 500]);
         $reportData['plantings'] = $plantings;
         break;
     case 'harvest_records':
-        $harvests = $sb->select(
-            'harvest',
-            '*,planting(planting_id,farm(farm_name),crop(crop_name))',
+        $harvests = $harvestModel->all(
             [],
             ['limit' => 500],
         );
         $reportData['harvests'] = $harvests;
         break;
     case 'total_harvested':
-        $harvests = $sb->select('harvest', 'quantity_kg', [], ['limit' => 500]);
+        $harvests = $harvestModel->all([], ['limit' => 500]);
         $reportData['harvests'] = $harvests;
         break;
     case 'harvest_value':
-        $harvests = $sb->select(
-            'harvest',
-            '*,planting(planting_id,farm(farm_name),crop(crop_name))',
+        $harvests = $harvestModel->all(
             [],
             ['limit' => 500],
         );
