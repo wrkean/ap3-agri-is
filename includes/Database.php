@@ -12,6 +12,16 @@ class Database {
     private ?PDO $pdo = null;
 
     public function __construct() {
+        // Test harness can force SQLite even when a real .env exists.
+        if (getenv('AGRI_FORCE_SQLITE') === '1') {
+            $this->driver = 'sqlite';
+            $dbPath = getenv('AGRI_DB_PATH') ?: __DIR__ . '/../database/agri.db';
+            $this->pdo = new PDO('sqlite:' . $dbPath);
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->pdo->exec('PRAGMA foreign_keys = ON');
+            return;
+        }
+
         $envFile = __DIR__ . '/../.env';
         $supabaseUrl = '';
         $supabaseKey = '';
@@ -46,6 +56,9 @@ class Database {
 
     public function select(string $table, string $columns = '*', array $filters = [], array $options = []) {
         if ($this->isSupabase()) {
+            // PostgREST treats bare "count" as a column name and errors;
+            // use the aggregate form "count()" so grouping works.
+            $columns = preg_replace('/^(\w+),count$/i', '$1,count()', trim($columns));
             return $this->supabase->select($table, $columns, $filters, $options);
         }
         return $this->sqliteSelect($table, $columns, $filters, $options);
