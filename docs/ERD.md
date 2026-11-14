@@ -99,7 +99,7 @@ farmer owns zero or many farms, while each farm belongs to exactly one farmer.
 
 - **Surrogate primary keys.** Every core table uses an integer IDENTITY
   primary key. Lookup tables use short, explicit integer IDs so reference data
-  is stable across the SQLite and Supabase builds.
+  is stable across environments.
 - **Dropdowns store IDs.** Soil, irrigation, category, season, status, grade and
   remark dropdowns submit the lookup ID; the UI joins the lookup table to show
   the descriptive label.
