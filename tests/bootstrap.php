@@ -1,6 +1,9 @@
 <?php
 // tests/bootstrap.php
 
+// Force SQLite driver for the entire test suite, regardless of .env contents.
+putenv('AGRI_FORCE_SQLITE=1');
+
 // Run the suite against a throwaway copy of the seeded database so test
 // inserts/deletes never modify the shipped database/agri.db artifact.
 $source = __DIR__ . '/../database/agri.db';
