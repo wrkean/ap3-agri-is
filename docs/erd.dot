@@ -1,0 +1,139 @@
+digraph ERD {
+    graph [rankdir=LR, fontname="Helvetica", fontsize=11, nodesep=0.35, ranksep=0.9, pad=0.3];
+    node  [shape=plain, fontname="Helvetica", fontsize=10];
+    edge  [fontname="Helvetica", fontsize=9, color="#4b5563", arrowsize=0.7];
+
+    crop_category [label=<
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f0fdf4">
+        <TR><TD BGCOLOR="#bbf7d0" COLSPAN="2"><B>crop_category</B></TD></TR>
+        <TR><TD ALIGN="LEFT"><U>crop_category_id</U> (PK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">category_name</TD><TD ALIGN="LEFT">varchar(50) UNIQUE</TD></TR>
+      </TABLE>>];
+
+    season [label=<
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f0fdf4">
+        <TR><TD BGCOLOR="#bbf7d0" COLSPAN="2"><B>season</B></TD></TR>
+        <TR><TD ALIGN="LEFT"><U>season_id</U> (PK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">season_name</TD><TD ALIGN="LEFT">varchar(30) UNIQUE</TD></TR>
+      </TABLE>>];
+
+    soil_type [label=<
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f0fdf4">
+        <TR><TD BGCOLOR="#bbf7d0" COLSPAN="2"><B>soil_type</B></TD></TR>
+        <TR><TD ALIGN="LEFT"><U>soil_type_id</U> (PK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">type_name</TD><TD ALIGN="LEFT">varchar(50) UNIQUE</TD></TR>
+      </TABLE>>];
+
+    irrigation_type [label=<
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f0fdf4">
+        <TR><TD BGCOLOR="#bbf7d0" COLSPAN="2"><B>irrigation_type</B></TD></TR>
+        <TR><TD ALIGN="LEFT"><U>irrigation_type_id</U> (PK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">type_name</TD><TD ALIGN="LEFT">varchar(50) UNIQUE</TD></TR>
+      </TABLE>>];
+
+    planting_status [label=<
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f0fdf4">
+        <TR><TD BGCOLOR="#bbf7d0" COLSPAN="2"><B>planting_status</B></TD></TR>
+        <TR><TD ALIGN="LEFT"><U>planting_status_id</U> (PK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">status_name</TD><TD ALIGN="LEFT">varchar(30) UNIQUE</TD></TR>
+      </TABLE>>];
+
+    quality_grade [label=<
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f0fdf4">
+        <TR><TD BGCOLOR="#bbf7d0" COLSPAN="2"><B>quality_grade</B></TD></TR>
+        <TR><TD ALIGN="LEFT"><U>quality_grade_id</U> (PK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">grade_name</TD><TD ALIGN="LEFT">varchar(30) UNIQUE</TD></TR>
+      </TABLE>>];
+
+    harvest_remarks [label=<
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f0fdf4">
+        <TR><TD BGCOLOR="#bbf7d0" COLSPAN="2"><B>harvest_remarks</B></TD></TR>
+        <TR><TD ALIGN="LEFT"><U>remark_id</U> (PK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">remark_description</TD><TD ALIGN="LEFT">varchar(100)</TD></TR>
+      </TABLE>>];
+
+    species [label=<
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eff6ff">
+        <TR><TD BGCOLOR="#bfdbfe" COLSPAN="2"><B>species</B></TD></TR>
+        <TR><TD ALIGN="LEFT"><U>species_id</U> (PK)</TD><TD ALIGN="LEFT">integer IDENTITY</TD></TR>
+        <TR><TD ALIGN="LEFT">crop_name</TD><TD ALIGN="LEFT">varchar(80) UNIQUE</TD></TR>
+        <TR><TD ALIGN="LEFT">crop_category_id (FK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+      </TABLE>>];
+
+    crop [label=<
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eff6ff">
+        <TR><TD BGCOLOR="#bfdbfe" COLSPAN="2"><B>crop</B></TD></TR>
+        <TR><TD ALIGN="LEFT"><U>crop_id</U> (PK)</TD><TD ALIGN="LEFT">integer IDENTITY</TD></TR>
+        <TR><TD ALIGN="LEFT">species_id (FK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">variety</TD><TD ALIGN="LEFT">varchar(80)</TD></TR>
+        <TR><TD ALIGN="LEFT">growing_period_days</TD><TD ALIGN="LEFT">integer &gt; 0</TD></TR>
+        <TR><TD ALIGN="LEFT">season_id (FK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+      </TABLE>>];
+
+    farmer [label=<
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eff6ff">
+        <TR><TD BGCOLOR="#bfdbfe" COLSPAN="2"><B>farmer</B></TD></TR>
+        <TR><TD ALIGN="LEFT"><U>farmer_id</U> (PK)</TD><TD ALIGN="LEFT">integer IDENTITY</TD></TR>
+        <TR><TD ALIGN="LEFT">first_name</TD><TD ALIGN="LEFT">varchar(50)</TD></TR>
+        <TR><TD ALIGN="LEFT">last_name</TD><TD ALIGN="LEFT">varchar(50)</TD></TR>
+        <TR><TD ALIGN="LEFT">contact_number</TD><TD ALIGN="LEFT">varchar(20)</TD></TR>
+        <TR><TD ALIGN="LEFT">address</TD><TD ALIGN="LEFT">varchar(150)</TD></TR>
+        <TR><TD ALIGN="LEFT">date_registered</TD><TD ALIGN="LEFT">date</TD></TR>
+        <TR><TD ALIGN="LEFT">created_at / updated_at</TD><TD ALIGN="LEFT">timestamptz</TD></TR>
+      </TABLE>>];
+
+    farm [label=<
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eff6ff">
+        <TR><TD BGCOLOR="#bfdbfe" COLSPAN="2"><B>farm</B></TD></TR>
+        <TR><TD ALIGN="LEFT"><U>farm_id</U> (PK)</TD><TD ALIGN="LEFT">integer IDENTITY</TD></TR>
+        <TR><TD ALIGN="LEFT">farmer_id (FK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">farm_name</TD><TD ALIGN="LEFT">varchar(100)</TD></TR>
+        <TR><TD ALIGN="LEFT">location</TD><TD ALIGN="LEFT">varchar(150)</TD></TR>
+        <TR><TD ALIGN="LEFT">area_hectares</TD><TD ALIGN="LEFT">numeric(8,2) &gt; 0</TD></TR>
+        <TR><TD ALIGN="LEFT">soil_type_id (FK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">irrigation_type_id (FK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">created_at / updated_at</TD><TD ALIGN="LEFT">timestamptz</TD></TR>
+      </TABLE>>];
+
+    planting [label=<
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eff6ff">
+        <TR><TD BGCOLOR="#bfdbfe" COLSPAN="2"><B>planting</B></TD></TR>
+        <TR><TD ALIGN="LEFT"><U>planting_id</U> (PK)</TD><TD ALIGN="LEFT">integer IDENTITY</TD></TR>
+        <TR><TD ALIGN="LEFT">farm_id (FK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">crop_id (FK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">planting_date</TD><TD ALIGN="LEFT">date</TD></TR>
+        <TR><TD ALIGN="LEFT">area_planted</TD><TD ALIGN="LEFT">numeric(8,2) &gt; 0</TD></TR>
+        <TR><TD ALIGN="LEFT">seed_quantity</TD><TD ALIGN="LEFT">numeric(8,2) &ge; 0</TD></TR>
+        <TR><TD ALIGN="LEFT">expected_harvest_date</TD><TD ALIGN="LEFT">date &ge; planting_date</TD></TR>
+        <TR><TD ALIGN="LEFT">planting_status_id (FK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">created_at / updated_at</TD><TD ALIGN="LEFT">timestamptz</TD></TR>
+      </TABLE>>];
+
+    harvest [label=<
+      <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eff6ff">
+        <TR><TD BGCOLOR="#bfdbfe" COLSPAN="2"><B>harvest</B></TD></TR>
+        <TR><TD ALIGN="LEFT"><U>harvest_id</U> (PK)</TD><TD ALIGN="LEFT">integer IDENTITY</TD></TR>
+        <TR><TD ALIGN="LEFT">planting_id (FK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">harvest_date</TD><TD ALIGN="LEFT">date</TD></TR>
+        <TR><TD ALIGN="LEFT">quantity_kg</TD><TD ALIGN="LEFT">numeric(10,2) &gt; 0</TD></TR>
+        <TR><TD ALIGN="LEFT">selling_price_per_kg</TD><TD ALIGN="LEFT">numeric(10,2) &ge; 0</TD></TR>
+        <TR><TD ALIGN="LEFT">quality_grade_id (FK)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">remark_id (FK, nullable)</TD><TD ALIGN="LEFT">integer</TD></TR>
+        <TR><TD ALIGN="LEFT">created_at / updated_at</TD><TD ALIGN="LEFT">timestamptz</TD></TR>
+      </TABLE>>];
+
+    crop_category -> species [label="1 : M"];
+    season -> crop [label="1 : M"];
+    species -> crop [label="1 : M  (species_id, variety) UNIQUE"];
+    farmer -> farm [label="1 : M"];
+    soil_type -> farm [label="1 : M"];
+    irrigation_type -> farm [label="1 : M"];
+    farm -> planting [label="1 : M"];
+    crop -> planting [label="1 : M"];
+    planting_status -> planting [label="1 : M"];
+    planting -> harvest [label="1 : M"];
+    quality_grade -> harvest [label="1 : M"];
+    harvest_remarks -> harvest [label="1 : 0..1", style="dashed"];
+
+    { rank=same; crop_category; season; soil_type; irrigation_type; planting_status; quality_grade; harvest_remarks; }
+}
