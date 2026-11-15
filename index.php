@@ -87,7 +87,7 @@ $pageTitle = 'Dashboard';
         <li><strong>Record Plantings</strong> — Track what was planted, where, and when</li>
         <li><strong>Record Harvests</strong> — Log harvest quantities and selling prices</li>
     </ol>
-    <a href="/farmers/index.php?action=create" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+    <a href="/farmers/index.php?action=create" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">
         <i class="fa-solid fa-plus"></i> Add Your First Farmer
     </a>
 </div>
@@ -134,21 +134,19 @@ $pageTitle = 'Dashboard';
                     <tbody>
                         <?php foreach ($recentPlanting as $p): ?>
                             <tr class="border-b border-gray-50 hover:bg-gray-50">
-                                <td class="py-2 text-gray-700"><?php echo htmlspecialchars(
+                                <td class="py-2 text-gray-700"><?php echo e(
                                     $p['farm']['farm_name'] ?? '—',
                                 ); ?></td>
-                                <td class="py-2 text-gray-700"><?php echo htmlspecialchars(
+                                <td class="py-2 text-gray-700"><?php echo e(
                                     $p['crop']['species']['crop_name'] ?? '—',
                                 ); ?></td>
-                                <td class="py-2 text-gray-700"><?php echo htmlspecialchars(
+                                <td class="py-2 text-gray-700"><?php echo e(
                                     $p['planting_date'] ?? '',
                                 ); ?></td>
                                 <td class="py-2">
                                     <?php $pStatus = $p['planting_status']['status_name'] ?? '—'; ?>
-                                    <span class="status-badge <?php echo $pStatus === 'Harvested'
-                                        ? 'bg-green-100 text-green-700'
-                                        : 'bg-blue-100 text-blue-700'; ?>">
-                                        <?php echo htmlspecialchars($pStatus); ?>
+                                    <span class="status-badge <?php echo statusColor($pStatus); ?>">
+                                        <?php echo e($pStatus); ?>
                                     </span>
                                 </td>
                             </tr>
@@ -179,7 +177,7 @@ $pageTitle = 'Dashboard';
                     <tbody>
                         <?php foreach ($recentHarvest as $h): ?>
                             <tr class="border-b border-gray-50 hover:bg-gray-50">
-                                <td class="py-2 text-gray-700"><?php echo htmlspecialchars(
+                                <td class="py-2 text-gray-700"><?php echo e(
                                     $h['harvest_date'] ?? '',
                                 ); ?></td>
                                 <td class="py-2 text-gray-700 font-medium"><?php echo number_format(
@@ -192,12 +190,8 @@ $pageTitle = 'Dashboard';
                                 ); ?></td>
                                 <td class="py-2">
                                     <?php $hGrade = $h['quality_grade']['grade_name'] ?? '—'; ?>
-                                    <span class="status-badge <?php echo $hGrade === 'Grade A'
-                                        ? 'bg-green-100 text-green-700'
-                                        : ($hGrade === 'Grade B'
-                                            ? 'bg-blue-100 text-blue-700'
-                                            : 'bg-gray-100 text-gray-700'); ?>">
-                                        <?php echo htmlspecialchars($hGrade); ?>
+                                    <span class="status-badge <?php echo gradeColor($hGrade); ?>">
+                                        <?php echo e($hGrade); ?>
                                     </span>
                                 </td>
                             </tr>
@@ -248,7 +242,7 @@ $pageTitle = 'Dashboard';
             labels: statusData.map(r => r.status),
             datasets: [{
                 data: statusData.map(r => parseInt(r.count)),
-                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+                backgroundColor: statusChartColors(),
                 borderWidth: 0
             }]
         },

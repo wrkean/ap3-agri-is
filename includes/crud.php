@@ -19,6 +19,45 @@ function badge(string $status, array $map = []): string
     return '<span class="status-badge ' . $cls . '">' . e($status) . '</span>';
 }
 
+/**
+ * Consistent color classes for planting statuses.
+ */
+function statusColor(string $status): string
+{
+    return match (strtolower(trim($status))) {
+        'harvested' => 'bg-green-100 text-green-700',
+        'growing'   => 'bg-blue-100 text-blue-700',
+        'failed'    => 'bg-red-100 text-red-700',
+        default     => 'bg-gray-100 text-gray-700',
+    };
+}
+
+/**
+ * Consistent color classes for quality grades.
+ */
+function gradeColor(string $grade): string
+{
+    return match (strtolower(trim($grade))) {
+        'grade a' => 'bg-green-100 text-green-700',
+        'grade b' => 'bg-blue-100 text-blue-700',
+        'grade c' => 'bg-amber-100 text-amber-700',
+        default   => 'bg-gray-100 text-gray-700',
+    };
+}
+
+/**
+ * Hex colors for chart datasets, matching statusColor/gradeColor.
+ */
+function statusChartColors(): array
+{
+    return ['#10b981', '#3b82f6', '#ef4444', '#f59e0b'];
+}
+
+function gradeChartColors(): array
+{
+    return ['#10b981', '#3b82f6', '#f59e0b'];
+}
+
 function pagination(int $page, int $total, int $per = 10): array
 {
     $pages = max(1, (int) ceil($total / $per));

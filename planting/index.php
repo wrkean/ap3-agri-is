@@ -251,7 +251,7 @@ if (!empty($formInput)) {
 ); ?></option><?php endforeach; ?>
                 </select>
             </div>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition flex items-center gap-2"><i class="fa-solid fa-search"></i> Search</button>
+            <button type="submit" class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition flex items-center gap-2"><i class="fa-solid fa-search"></i> Search</button>
             <div class="flex gap-2">
                 <a href="index.php?search=<?php echo rawurlencode($search); ?>&status=<?php echo $statusFilter
     ?: ''; ?>&farm=<?php echo $farmFilter
@@ -296,11 +296,7 @@ if (!empty($formInput)) {
                             <td class="px-6 py-3 text-gray-700"><?php echo e($r['expected_harvest_date']); ?></td>
                             <td class="px-6 py-3 text-gray-700"><?php echo number_format($r['area_planted'], 2); ?></td>
                             <td class="px-6 py-3">
-                                <span class="status-badge <?php echo $statusName === 'Harvested'
-                                    ? 'bg-green-100 text-green-700'
-                                    : ($statusName === 'Growing'
-                                        ? 'bg-blue-100 text-blue-700'
-                                        : 'bg-gray-100 text-gray-700'); ?>">
+                                <span class="status-badge <?php echo statusColor($statusName); ?>">
                                     <?php echo e($statusName); ?>
                                 </span>
                             </td>

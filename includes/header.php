@@ -45,7 +45,7 @@ $flashConfig = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($pageTitle ?? 'Agriculture Information System'); ?></title>
+    <title><?php echo e($pageTitle ?? 'Agriculture Information System'); ?></title>
     <!-- Preconnect to external origins to reduce connection setup time -->
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
@@ -64,8 +64,8 @@ $flashConfig = [
         }
     }
     if (!empty($sbUrl) && strpos($sbUrl, 'your-project') === false) {
-        echo '<link rel="preconnect" href="' . htmlspecialchars($sbUrl) . '">';
-        echo '<link rel="dns-prefetch" href="' . htmlspecialchars($sbUrl) . '">';
+        echo '<link rel="preconnect" href="' . e($sbUrl) . '">';
+        echo '<link rel="dns-prefetch" href="' . e($sbUrl) . '">';
     }
     ?>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -83,7 +83,7 @@ $flashConfig = [
 </head>
 <body class="bg-gray-50 text-gray-900 antialiased">
     <!-- Skip link for keyboard/screen reader users -->
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg">Skip to main content</a>
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-green-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg">Skip to main content</a>
 
 <?php if (isLoggedIn()): ?>
     <header class="bg-white border-b border-gray-200 sticky top-0 z-30" role="banner">
@@ -114,10 +114,10 @@ $flashConfig = [
                         <span class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-xs font-semibold text-gray-700">
                             <?php echo strtoupper(substr(currentUser()['name'] ?? 'U', 0, 1)); ?>
                         </span>
-                        <span class="hidden lg:inline"><?php echo htmlspecialchars(
+                        <span class="hidden lg:inline"><?php echo e(
                             currentUser()['name'] ?? '',
                         ); ?></span>
-                        <span class="text-xs font-medium uppercase text-gray-400"><?php echo htmlspecialchars(
+                        <span class="text-xs font-medium uppercase text-gray-400"><?php echo e(
                             currentUser()['role'] ?? '',
                         ); ?></span>
                     </span>
@@ -153,7 +153,7 @@ $flashConfig = [
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 fade-in" role="alert">
             <div class="flex items-start gap-3 px-4 py-3 rounded-lg border <?php echo $cls; ?>">
                 <i class="fa-solid <?php echo $iconCls; ?> mt-0.5"></i>
-                <p class="text-sm font-medium"><?php echo htmlspecialchars($msg); ?></p>
+                <p class="text-sm font-medium"><?php echo e($msg); ?></p>
             </div>
         </div>
 <?php
