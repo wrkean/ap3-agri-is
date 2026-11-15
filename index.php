@@ -242,7 +242,7 @@ $pageTitle = 'Dashboard';
             labels: statusData.map(r => r.status),
             datasets: [{
                 data: statusData.map(r => parseInt(r.count)),
-                backgroundColor: statusChartColors(),
+                backgroundColor: <?php echo json_encode(statusChartColors()); ?>,
                 borderWidth: 0
             }]
         },
