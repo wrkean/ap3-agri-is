@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/crud.php';
 
 if (isLoggedIn()) {
     header('Location: /index.php');
