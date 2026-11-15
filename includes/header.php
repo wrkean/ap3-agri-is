@@ -82,9 +82,11 @@ $flashConfig = [
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 antialiased">
+    <!-- Skip link for keyboard/screen reader users -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg">Skip to main content</a>
 
 <?php if (isLoggedIn()): ?>
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-30" role="banner">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <a href="/index.php" class="flex items-center gap-2 text-gray-900">
@@ -102,6 +104,11 @@ $flashConfig = [
                         <a href="/reports/index.php" class="<?php echo $navClass('reports'); ?>">Reports</a>
                     <?php endif; ?>
                 </nav>
+
+                <!-- Mobile hamburger button -->
+                <button id="mobileMenuBtn" class="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-md text-gray-600 hover:bg-gray-100 transition" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobileMenu">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
                 <div class="flex items-center gap-3">
                     <span class="hidden md:inline-flex items-center gap-2 text-sm text-gray-600">
                         <span class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-xs font-semibold text-gray-700">
@@ -122,6 +129,21 @@ $flashConfig = [
             </div>
         </div>
     </header>
+
+    <!-- Mobile navigation menu (hidden by default) -->
+    <div id="mobileMenu" class="hidden md:hidden bg-white border-b border-gray-200 shadow-lg" role="navigation" aria-label="Mobile navigation">
+        <div class="px-4 py-3 space-y-1">
+            <a href="/index.php" class="block px-3 py-2.5 text-sm font-medium rounded-md <?php echo $activeNav === 'dashboard' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100'; ?>">Dashboard</a>
+            <a href="/farmers/index.php" class="block px-3 py-2.5 text-sm font-medium rounded-md <?php echo $activeNav === 'farmers' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100'; ?>">Farmers</a>
+            <a href="/farms/index.php" class="block px-3 py-2.5 text-sm font-medium rounded-md <?php echo $activeNav === 'farms' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100'; ?>">Farms</a>
+            <a href="/crops/index.php" class="block px-3 py-2.5 text-sm font-medium rounded-md <?php echo $activeNav === 'crops' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100'; ?>">Crops</a>
+            <a href="/planting/index.php" class="block px-3 py-2.5 text-sm font-medium rounded-md <?php echo $activeNav === 'planting' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100'; ?>">Planting</a>
+            <a href="/harvest/index.php" class="block px-3 py-2.5 text-sm font-medium rounded-md <?php echo $activeNav === 'harvest' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100'; ?>">Harvest</a>
+            <?php if (isAdmin()): ?>
+                <a href="/reports/index.php" class="block px-3 py-2.5 text-sm font-medium rounded-md <?php echo $activeNav === 'reports' ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100'; ?>">Reports</a>
+            <?php endif; ?>
+        </div>
+    </div>
 <?php endif; ?>
 
 <?php foreach (['success', 'error', 'warning', 'info'] as $type) {
