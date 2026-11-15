@@ -11,28 +11,51 @@
  *   $sb->insert('crop', ['crop_name'=>'Rice', ...]);
  *   $sb->update('crop', ['variety'=>'New'], 'crop_id=eq.1');
  *   $sb->delete('crop', 'crop_id=eq.1');
+ *
+ * Server-only users lookup (never used by normal queries):
+ *   $sb = new Supabase(true); // uses SUPABASE_SERVICE_KEY instead of the anon key
  */
 
 class Supabase
 {
     private string $url;
-    private string $anonKey;
+    private string $key;
+    private bool $useServiceKey;
     private array $headers;
 
-    public function __construct()
+    /** Last error message from request(), or null when the last call succeeded. */
+    public ?string $lastError = null;
+
+    /**
+     * @param bool $useServiceKey When true, use the server-side SUPABASE_SERVICE_KEY
+     *                            instead of the anon key. Server-only; never expose it
+     *                            to the browser. If the service key is missing this fails
+     *                            closed (empty key) instead of falling back to anon access.
+     */
+    public function __construct(bool $useServiceKey = false)
     {
         $this->loadEnv();
+        $this->useServiceKey = $useServiceKey;
         $this->url = rtrim($_ENV['SUPABASE_URL'] ?? (getenv('SUPABASE_URL') ?? ''), '/');
-        $this->anonKey = $_ENV['SUPABASE_ANON_KEY'] ?? (getenv('SUPABASE_ANON_KEY') ?? '');
+        $anonKey = $_ENV['SUPABASE_ANON_KEY'] ?? (getenv('SUPABASE_ANON_KEY') ?? '');
+        $serviceKey = $_ENV['SUPABASE_SERVICE_KEY'] ?? (getenv('SUPABASE_SERVICE_KEY') ?? '');
 
-        if (empty($this->url) || empty($this->anonKey)) {
-            // Don't die here; let the caller handle missing credentials gracefully.
-            error_log('Supabase: SUPABASE_URL or SUPABASE_ANON_KEY is not set.');
+        if ($useServiceKey) {
+            $this->key = $serviceKey;
+            if (empty($this->key) || empty($this->url)) {
+                error_log('Supabase: SUPABASE_SERVICE_KEY is not set; server query denied.');
+            }
+        } else {
+            $this->key = $anonKey;
+            if (empty($this->key) || empty($this->url)) {
+                // Don't die here; let the caller handle missing credentials gracefully.
+                error_log('Supabase: SUPABASE_URL or SUPABASE_ANON_KEY is not set.');
+            }
         }
 
         $this->headers = [
-            'apikey: ' . $this->anonKey,
-            'Authorization: Bearer ' . $this->anonKey,
+            'apikey: ' . $this->key,
+            'Authorization: Bearer ' . $this->key,
             'Content-Type: application/json',
             'Prefer: return=representation',
         ];
@@ -40,12 +63,18 @@ class Supabase
 
     /**
      * Load key=value lines from .env into $_ENV if not already set.
+     * When APP_ENV=test and a readable .env.test exists, it is loaded instead.
      */
     private function loadEnv(): void
     {
         $envFile = __DIR__ . '/../.env';
+        $testFile = __DIR__ . '/../.env.test';
         $exampleFile = __DIR__ . '/../.env.example';
-        $file = file_exists($envFile) ? $envFile : $exampleFile ?? null;
+        if (getenv('APP_ENV') === 'test' && is_readable($testFile)) {
+            $file = $testFile;
+        } else {
+            $file = file_exists($envFile) ? $envFile : $exampleFile ?? null;
+        }
         if (!$file || !is_readable($file)) {
             return;
         }
@@ -78,10 +107,13 @@ class Supabase
      * @param string $path    Table or endpoint path, e.g. 'crop' or 'rpc/function_name'
      * @param array|null $query Query parameters (filters, select, order, limit, offset)
      * @param array|null $body  JSON body for POST/PATCH
-     * @return array|false Decoded JSON response, or false on error
+     * @return array|null Decoded JSON response, [] for an empty (204-style) response,
+     *                    or null on failure (see $this->lastError). Never returns
+     *                    [] to signal an HTTP error.
      */
     public function request(string $method, string $path, array $query = null, array $body = null)
     {
+        $this->lastError = null;
         $url = $this->url . '/rest/v1/' . ltrim($path, '/');
 
         if ($query) {
@@ -116,49 +148,58 @@ class Supabase
         curl_close($ch);
 
         if ($error) {
-            error_log("Supabase cURL error: $error");
-            return [];
+            $this->lastError = "Supabase cURL error: $error";
+            error_log($this->lastError);
+            return null;
         }
 
         if ($httpCode >= 400) {
-            error_log("Supabase HTTP $httpCode for $method $url: $response");
-            return [];
+            $this->lastError = "Supabase HTTP $httpCode for $method $url: $response";
+            error_log($this->lastError);
+            return null;
         }
 
         if ($response === '' || $response === 'null') {
+            // Empty (204-style) response is not an error.
             return [];
         }
 
         $decoded = json_decode($response, true);
-        return $decoded === null ? [] : $decoded;
+        if ($decoded === null) {
+            $this->lastError = "Supabase returned invalid JSON for $method $url: $response";
+            error_log($this->lastError);
+            return null;
+        }
+        return $decoded;
     }
 
-    /** SELECT rows from a table. */
+    /** SELECT rows from a table. Returns [] on failure (see lastError). */
     public function select(string $table, string $columns = '*', array $filters = [], array $options = [])
     {
         $query = array_merge(['select' => $columns], $filters, $options);
-        return $this->request('GET', $table, $query);
+        $rows = $this->request('GET', $table, $query);
+        return $rows ?? [];
     }
 
-    /** INSERT a row. Returns the inserted row(s). */
+    /** INSERT a row. Returns the inserted row(s), or null on failure. */
     public function insert(string $table, array $data)
     {
         return $this->request('POST', $table, null, $data);
     }
 
-    /** UPDATE rows matching filters. Returns updated row(s). */
+    /** UPDATE rows matching filters. Returns updated row(s), or null on failure. */
     public function update(string $table, array $data, array $filters)
     {
         return $this->request('PATCH', $table, $filters, $data);
     }
 
-    /** DELETE rows matching filters. */
+    /** DELETE rows matching filters. Returns deleted row(s), or null on failure. */
     public function delete(string $table, array $filters)
     {
         return $this->request('DELETE', $table, $filters);
     }
 
-    /** Get a single row by primary key. */
+    /** Get a single row by primary key, or null on failure / not found. */
     public function find(string $table, int $id, string $pk = 'id')
     {
         $rows = $this->select($table, '*', ["$pk=eq.$id"], ['limit' => 1]);

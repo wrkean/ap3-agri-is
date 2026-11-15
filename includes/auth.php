@@ -3,63 +3,41 @@
  * Simple session-based authentication for the Agriculture Information System.
  *
  * Users are validated against the `users` table in Supabase
- * (password_hash()/password_verify()). Falls back to demo accounts if the
- * table is unavailable.
+ * (password_hash()/password_verify()). Fails closed: if the lookup
+ * fails or returns nothing, login fails. No fallback accounts.
  *
  * Roles: administrator, staff
  */
 
 session_start();
 
-function getUsers(): array
+/**
+ * Look up a single user by email via the server-only service key.
+ * Returns the normalized user row, or null when not found / on failure.
+ */
+function getUserByEmail(string $email): ?array
 {
-    static $users = null;
-    if ($users === null) {
-        $users = [];
-        // Validate against the `users` table in Supabase when available.
-        try {
-            if (!class_exists('Database')) {
-                require_once __DIR__ . '/Database.php';
-            }
-            if (class_exists('Database')) {
-                $db = new Database();
-                $rows = $db->select('users', '*');
-                if (is_array($rows)) {
-                    foreach ($rows as $r) {
-                        $users[] = [
-                            'id' => $r['user_id'] ?? ($r['id'] ?? null),
-                            'email' => $r['email'] ?? '',
-                            'password' => $r['password_hash'] ?? ($r['password'] ?? ''),
-                            'role' => $r['role'] ?? '',
-                            'name' => $r['full_name'] ?? ($r['name'] ?? ''),
-                        ];
-                    }
-                }
-            }
-        } catch (Throwable $e) {
-            $users = [];
+    try {
+        if (!class_exists('Database')) {
+            require_once __DIR__ . '/Database.php';
         }
-        // Fallback demo accounts if the database is unavailable or empty.
-        if (empty($users)) {
-            $users = [
-                [
-                    'id' => 1,
-                    'email' => 'admin@example.com',
-                    'password' => password_hash('admin123', PASSWORD_DEFAULT),
-                    'role' => 'administrator',
-                    'name' => 'System Administrator',
-                ],
-                [
-                    'id' => 2,
-                    'email' => 'staff@example.com',
-                    'password' => password_hash('staff123', PASSWORD_DEFAULT),
-                    'role' => 'staff',
-                    'name' => 'Staff User',
-                ],
-            ];
+        $db = new Database(true); // service key; server-only users lookup
+        $rows = $db->select('users', '*', ['email' => 'eq.' . rawurlencode($email)], ['limit' => 1]);
+        $row = is_array($rows) ? ($rows[0] ?? null) : null;
+        if (!is_array($row)) {
+            return null;
         }
+        return [
+            'id' => $row['user_id'] ?? ($row['id'] ?? null),
+            'email' => $row['email'] ?? '',
+            'password' => $row['password_hash'] ?? ($row['password'] ?? ''),
+            'role' => $row['role'] ?? '',
+            'name' => $row['full_name'] ?? ($row['name'] ?? ''),
+        ];
+    } catch (Throwable $e) {
+        error_log('auth: users lookup failed: ' . $e->getMessage());
+        return null;
     }
-    return $users;
 }
 
 function isLoggedIn(): bool
@@ -86,17 +64,22 @@ function isAdmin(): bool
 
 function login(string $email, string $password): bool
 {
-    foreach (getUsers() as $u) {
-        if ($u['email'] === $email && password_verify($password, $u['password'])) {
-            $_SESSION['user_id'] = $u['id'];
-            $_SESSION['user_email'] = $u['email'];
-            $_SESSION['user_role'] = $u['role'];
-            $_SESSION['user_name'] = $u['name'];
-            $_SESSION['logged_in_at'] = time();
-            return true;
-        }
+    $u = getUserByEmail(trim($email));
+    if ($u === null || empty($u['password']) || !password_verify($password, $u['password'])) {
+        return false;
     }
-    return false;
+    // Only known roles may log in; anything else is rejected.
+    if (!in_array($u['role'], ['administrator', 'staff'], true)) {
+        return false;
+    }
+    // Regenerate the session ID so a fixed session cannot be reused.
+    session_regenerate_id(true);
+    $_SESSION['user_id'] = $u['id'];
+    $_SESSION['user_email'] = $u['email'];
+    $_SESSION['user_role'] = $u['role'];
+    $_SESSION['user_name'] = $u['name'];
+    $_SESSION['logged_in_at'] = time();
+    return true;
 }
 
 function logout(): void
