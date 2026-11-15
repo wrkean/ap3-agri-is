@@ -50,62 +50,26 @@ $pageTitle = 'Dashboard';
 ?>
 <h1 class="text-2xl font-bold text-gray-800 mb-6 fade-in">Dashboard</h1>
 
-<!-- Summary Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8 fade-in">
-    <div class="bg-white p-5 rounded-lg border border-gray-200">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 uppercase font-semibold">Total Farmers</p>
-                <h3 class="text-2xl font-bold text-gray-900 mt-1"><?php echo number_format($counts['farmers']); ?></h3>
+<!-- Summary strip (compact) -->
+<div class="bg-white rounded-lg border border-gray-200 mb-6 fade-in overflow-x-auto">
+    <div class="flex divide-x divide-gray-100 min-w-max">
+        <?php
+        $stats = [
+            ['label' => 'Farmers', 'value' => $counts['farmers'], 'icon' => 'fa-users', 'color' => 'text-blue-600'],
+            ['label' => 'Farms', 'value' => $counts['farms'], 'icon' => 'fa-seedling', 'color' => 'text-purple-600'],
+            ['label' => 'Crops', 'value' => $counts['crops'], 'icon' => 'fa-carrot', 'color' => 'text-green-600'],
+            ['label' => 'Plantings', 'value' => $counts['planting'], 'icon' => 'fa-calendar-check', 'color' => 'text-orange-600'],
+            ['label' => 'Harvests', 'value' => $counts['harvest'], 'icon' => 'fa-wheat-awn', 'color' => 'text-red-600'],
+        ];
+        foreach ($stats as $s): ?>
+            <div class="flex-1 min-w-[120px] px-4 py-3 flex items-center gap-3">
+                <i class="fa-solid <?php echo $s['icon']; ?> <?php echo $s['color']; ?> text-lg"></i>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase font-semibold leading-tight"><?php echo $s['label']; ?></p>
+                    <p class="text-xl font-bold text-gray-900 leading-tight"><?php echo number_format($s['value']); ?></p>
+                </div>
             </div>
-            <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                <i class="fa-solid fa-users"></i>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white p-5 rounded-lg border border-gray-200">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 uppercase font-semibold">Total Farms</p>
-                <h3 class="text-2xl font-bold text-gray-900 mt-1"><?php echo number_format($counts['farms']); ?></h3>
-            </div>
-            <div class="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
-                <i class="fa-solid fa-seedling"></i>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white p-5 rounded-lg border border-gray-200">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 uppercase font-semibold">Total Crops</p>
-                <h3 class="text-2xl font-bold text-gray-900 mt-1"><?php echo number_format($counts['crops']); ?></h3>
-            </div>
-            <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600">
-                <i class="fa-solid fa-carrot"></i>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white p-5 rounded-lg border border-gray-200">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 uppercase font-semibold">Planting Records</p>
-                <h3 class="text-2xl font-bold text-gray-900 mt-1"><?php echo number_format($counts['planting']); ?></h3>
-            </div>
-            <div class="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-600">
-                <i class="fa-solid fa-calendar-check"></i>
-            </div>
-        </div>
-    </div>
-    <div class="bg-white p-5 rounded-lg border border-gray-200">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-500 uppercase font-semibold">Harvest Records</p>
-                <h3 class="text-2xl font-bold text-gray-900 mt-1"><?php echo number_format($counts['harvest']); ?></h3>
-            </div>
-            <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-600">
-                <i class="fa-solid fa-wheat-awn"></i>
-            </div>
-        </div>
+        <?php endforeach; ?>
     </div>
 </div>
 
@@ -225,74 +189,34 @@ $pageTitle = 'Dashboard';
     </div>
 </div>
 
-<!-- Navigation shortcuts -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 fade-in">
-    <?php
-    $shortcuts = [
-        [
-            'href' => '/farmers/index.php',
-            'icon' => 'fa-users',
-            'color' => 'bg-blue-100 text-blue-600',
-            'label' => 'Manage Farmers',
-            'desc' => 'Add, edit, view farmers',
-        ],
-        [
-            'href' => '/farms/index.php',
-            'icon' => 'fa-seedling',
-            'color' => 'bg-purple-100 text-purple-600',
-            'label' => 'Manage Farms',
-            'desc' => 'Farm locations & details',
-        ],
-        [
-            'href' => '/crops/index.php',
-            'icon' => 'fa-carrot',
-            'color' => 'bg-green-100 text-green-600',
-            'label' => 'Manage Crops',
-            'desc' => 'Crop catalog & varieties',
-        ],
-        [
-            'href' => '/planting/index.php',
-            'icon' => 'fa-calendar-check',
-            'color' => 'bg-orange-100 text-orange-600',
-            'label' => 'Planting Records',
-            'desc' => 'Track planting cycles',
-        ],
-        [
-            'href' => '/harvest/index.php',
-            'icon' => 'fa-wheat-awn',
-            'color' => 'bg-red-100 text-red-600',
-            'label' => 'Harvest Records',
-            'desc' => 'Record harvests & quality',
-        ],
-    ];
-    if (isAdmin()):
-        $shortcuts[] = [
-            'href' => '/reports/index.php',
-            'icon' => 'fa-chart-bar',
-            'color' => 'bg-indigo-100 text-indigo-600',
-            'label' => 'Reports',
-            'desc' => 'View agricultural reports',
+<!-- Quick actions (collapsible) -->
+<details class="mb-8 fade-in group">
+    <summary class="cursor-pointer select-none flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-3">
+        <i class="fa-solid fa-bolt text-amber-500"></i> Quick Actions
+        <i class="fa-solid fa-chevron-down text-xs text-gray-400 group-open:rotate-180 transition-transform"></i>
+    </summary>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <?php
+        $shortcuts = [
+            ['href' => '/farmers/index.php', 'icon' => 'fa-users', 'color' => 'bg-blue-100 text-blue-600', 'label' => 'Farmers'],
+            ['href' => '/farms/index.php', 'icon' => 'fa-seedling', 'color' => 'bg-purple-100 text-purple-600', 'label' => 'Farms'],
+            ['href' => '/crops/index.php', 'icon' => 'fa-carrot', 'color' => 'bg-green-100 text-green-600', 'label' => 'Crops'],
+            ['href' => '/planting/index.php', 'icon' => 'fa-calendar-check', 'color' => 'bg-orange-100 text-orange-600', 'label' => 'Planting'],
+            ['href' => '/harvest/index.php', 'icon' => 'fa-wheat-awn', 'color' => 'bg-red-100 text-red-600', 'label' => 'Harvest'],
         ];
-    endif;
-    foreach ($shortcuts as $s): ?>
-        <a href="<?php echo $s[
-            'href'
-        ]; ?>" class="group flex items-center gap-3 p-4 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition">
-            <div class="<?php echo $s[
-                'color'
-            ]; ?> w-10 h-10 rounded-lg flex items-center justify-center group-hover:scale-110 transition">
-                <i class="fa-solid <?php echo $s['icon']; ?>"></i>
-            </div>
-            <div>
-                <div class="font-medium text-gray-800 group-hover:text-blue-600 transition"><?php echo $s[
-                    'label'
-                ]; ?></div>
-                <div class="text-xs text-gray-500"><?php echo $s['desc']; ?></div>
-            </div>
-        </a>
-    <?php endforeach;
-    ?>
-</div>
+        if (isAdmin()) {
+            $shortcuts[] = ['href' => '/reports/index.php', 'icon' => 'fa-chart-bar', 'color' => 'bg-indigo-100 text-indigo-600', 'label' => 'Reports'];
+        }
+        foreach ($shortcuts as $s): ?>
+            <a href="<?php echo $s['href']; ?>" class="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition text-center">
+                <div class="<?php echo $s['color']; ?> w-9 h-9 rounded-lg flex items-center justify-center">
+                    <i class="fa-solid <?php echo $s['icon']; ?>"></i>
+                </div>
+                <span class="text-xs font-medium text-gray-700"><?php echo $s['label']; ?></span>
+            </a>
+        <?php endforeach; ?>
+    </div>
+</details>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
 
