@@ -10,6 +10,31 @@ $cropModel = new Crop($db);
 $action = $_GET['action'] ?? 'list';
 $id = (int) ($_GET['id'] ?? 0);
 
+// Handle delete (POST + CSRF only; GET links are not allowed)
+if ($action === 'delete') {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        flash('error', 'Delete must be submitted from the delete button.');
+    } elseif (!validateCsrf()) {
+        flash('error', 'Invalid security token. Please try again.');
+    } elseif ($id <= 0) {
+        flash('error', 'Invalid record ID.');
+    } else {
+        $harvests = $db->select('harvest', 'harvest_id', ['planting_id=eq.' . $id]);
+        if (!empty($harvests)) {
+            flash('error', 'Cannot delete planting: has harvest records.');
+        } else {
+            $result = $plantingModel->delete($id);
+            if ($result === null) {
+                flash('error', 'Could not save. Please check your input.');
+            } else {
+                flash('success', 'Planting deleted.');
+            }
+        }
+    }
+    header('Location: /planting/index.php');
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCsrf()) {
         flash('error', 'Invalid security token. Please try again.');
@@ -33,8 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$data['crop_id']) {
         $errors[] = 'Crop is required.';
     }
-    if (!$data['planting_date'] || !DateTime::createFromFormat('Y-m-d', $data['planting_date'])) {
-        $errors[] = 'Valid planting date is required.';
+    if (!$data['planting_date'] || !isValidDate($data['planting_date'])) {
+        $errors[] = 'Valid planting date is required (real calendar date, YYYY-MM-DD).';
     }
     if (!is_numeric($data['area_planted']) || $data['area_planted'] <= 0) {
         $errors[] = 'Area planted must be positive.';
@@ -42,11 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!is_numeric($data['seed_quantity']) || $data['seed_quantity'] < 0) {
         $errors[] = 'Seed quantity must be valid.';
     }
-    if (!$data['expected_harvest_date'] || !DateTime::createFromFormat('Y-m-d', $data['expected_harvest_date'])) {
-        $errors[] = 'Valid expected harvest date is required.';
+    if (!$data['expected_harvest_date'] || !isValidDate($data['expected_harvest_date'])) {
+        $errors[] = 'Valid expected harvest date is required (real calendar date, YYYY-MM-DD).';
     }
     if ($data['expected_harvest_date'] < $data['planting_date']) {
-        $errors[] = 'Expected harvest must be after planting date.';
+        $errors[] = 'Expected harvest date must be on or after the planting date.';
     }
     if (!$data['planting_status_id']) {
         $errors[] = 'Status is required.';
@@ -58,29 +83,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
     if ($action === 'create') {
-        $plantingModel->create($data);
+        $result = $plantingModel->create($data);
+        if ($result === null) {
+            storeFormInput($data);
+            flash('error', 'Could not save. Please check your input.');
+            header('Location: /planting/index.php?action=create');
+            exit();
+        }
         flash('success', 'Planting record created.');
         header('Location: /planting/index.php');
         exit();
     }
     if ($action === 'edit' && $id > 0) {
-        $plantingModel->update($id, $data);
+        $result = $plantingModel->update($id, $data);
+        if ($result === null) {
+            storeFormInput($data);
+            flash('error', 'Could not save. Please check your input.');
+            header('Location: /planting/index.php?action=edit&id=' . $id);
+            exit();
+        }
         flash('success', 'Planting updated.');
         header('Location: /planting/index.php');
         exit();
     }
-}
-
-if ($action === 'delete' && $id > 0) {
-    $harvests = $db->select('harvest', 'harvest_id', ['planting_id=eq.' . $id]);
-    if (!empty($harvests)) {
-        flash('error', 'Cannot delete planting: has harvest records.');
-    } else {
-        $plantingModel->delete($id);
-        flash('success', 'Planting deleted.');
-    }
-    header('Location: /planting/index.php');
-    exit();
 }
 
 $pageTitle = 'Planting Records';
@@ -92,13 +117,20 @@ $statusOptions = $db->select('planting_status', 'planting_status_id,status_name'
 $search = trim($_GET['search'] ?? '');
 $statusFilter = (int) ($_GET['status'] ?? 0);
 $farmFilter = (int) ($_GET['farm'] ?? 0);
-$sort = $_GET['sort'] ?? 'planting_id';
-$dir = $_GET['dir'] ?? 'asc';
+$sort = whitelistSort($_GET['sort'] ?? 'planting_id', ['planting_id', 'planting_date', 'expected_harvest_date', 'area_planted'], 'planting_id');
+$dir = whitelistDir($_GET['dir'] ?? 'asc');
 $page = (int) ($_GET['page'] ?? 1);
 
 $filters = [];
+$invalidDateSearch = false;
 if ($search !== '') {
-    $filters[] = 'planting_date=ilike.%25' . rawurlencode($search) . '%25';
+    // Date column, so only an exact YYYY-MM-DD match works.
+    if (isValidDate($search)) {
+        $filters[] = 'planting_date=eq.' . $search;
+    } else {
+        $invalidDateSearch = true;
+        $filters[] = 'planting_id=eq.-1'; // impossible ID: no results
+    }
 }
 if ($statusFilter > 0) {
     $filters[] = 'planting_status_id=eq.' . $statusFilter;
@@ -131,6 +163,7 @@ if (!empty($formInput)) {
             <h2 class="text-lg font-semibold text-gray-800 mb-4"><?php echo $action === 'create'
                 ? 'Add Planting Record'
                 : 'Edit Planting Record'; ?></h2>
+            <p class="text-sm text-gray-500 -mt-2 mb-4">Fields marked * are required. Expected harvest date must be on or after the planting date.</p>
             <form method="POST" action="index.php?action=<?php
             echo $action;
             echo $id > 0 ? '&id=' . $id : '';
@@ -216,7 +249,10 @@ if (!empty($formInput)) {
     <div class="flex justify-between items-end mb-4 fade-in">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Planting Records</h1>
-            <p class="text-gray-500 text-sm">Track crop planting cycles</p>
+            <p class="text-gray-500 text-sm">Track crop planting cycles. Search by planting date (YYYY-MM-DD); deleting is blocked while harvest records exist.</p>
+            <?php if ($invalidDateSearch): ?>
+                <p class="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">Search text is not a valid date (YYYY-MM-DD), so no records match.</p>
+            <?php endif; ?>
         </div>
         <a href="index.php?action=create" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition flex items-center gap-2"><i class="fa-solid fa-plus"></i> Add Record</a>
     </div>
@@ -227,7 +263,7 @@ if (!empty($formInput)) {
                 <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
                 <input type="text" id="searchInput" name="search" value="<?php echo e(
                     $search,
-                ); ?>" placeholder="Search by date..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                ); ?>" placeholder="Search by date (YYYY-MM-DD)..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
             </div>
             <div class="relative w-full md:w-1/3">
                 <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
@@ -304,9 +340,12 @@ if (!empty($formInput)) {
                                 <a href="index.php?action=edit&id=<?php echo $r[
                                     'planting_id'
                                 ]; ?>" class="text-blue-600 hover:underline text-sm">Edit</a>
-                                <a href="index.php?action=delete&id=<?php echo $r[
+                                <form method="POST" action="index.php?action=delete&id=<?php echo $r[
                                     'planting_id'
-                                ]; ?>" class="text-red-600 hover:underline text-sm ml-4" data-confirm="Delete this planting? Related harvest records will be affected.">Delete</a>
+                                ]; ?>" class="inline-block">
+                                    <input type="hidden" name="csrf_token" value="<?php echo csrfToken(); ?>">
+                                    <button type="submit" data-confirm="Delete this planting? Related harvest records will be affected." class="text-red-600 hover:underline text-sm ml-4">Delete</button>
+                                </form>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -317,8 +356,7 @@ if (!empty($formInput)) {
         <?php if ($total > 0): ?>
             <div class="px-6 py-4 border-t border-gray-100">
                 <?php echo renderPager(
-                    $_SERVER['PHP_SELF'] .
-                        '?' .
+                    '/planting/index.php?' .
                         http_build_query(
                             array_filter([
                                 'search' => $search,

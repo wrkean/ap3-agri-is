@@ -265,7 +265,7 @@ INSERT INTO public.harvest (harvest_id, planting_id, harvest_date, quantity_kg, 
 (2,  2,  '2026-04-25', 1025.00, 25.50, 2, 2),
 (3,  3,  '2026-04-18', 1150.00, 29.00, 3, 2),
 (4,  4,  '2026-05-01', 1275.00, 32.50, 1, 1),
-(5,  5,  '2026-11-20', 1400.00, 36.00, 2, 2),
+(5,  5,  '2026-11-01', 1400.00, 36.00, 2, 2),
 (6,  6,  '2026-06-26', 1525.00, 39.50, 3, 2),
 (7,  7,  '2026-05-20', 1650.00, 43.00, 1, 1),
 (8,  8,  '2026-09-30', 1775.00, 46.50, 2, 2),
@@ -275,7 +275,7 @@ INSERT INTO public.harvest (harvest_id, planting_id, harvest_date, quantity_kg, 
 (12, 12, '2026-05-25', 2275.00, 32.50, 3, 2),
 (13, 13, '2026-05-18', 2400.00, 36.00, 1, 1),
 (14, 14, '2026-05-31', 2525.00, 39.50, 2, 2),
-(15, 15, '2026-12-20', 2650.00, 43.00, 3, 2),
+(15, 15, '2026-11-10', 2650.00, 43.00, 3, 2),
 (16, 16, '2026-07-26', 2775.00, 46.50, 1, 1),
 (17, 17, '2026-06-19', 2900.00, 22.00, 2, 2),
 (18, 18, '2026-10-30', 3025.00, 25.50, 3, 2),
@@ -367,3 +367,18 @@ CREATE POLICY "Allow public delete" ON public.farmer FOR DELETE USING (true);
 CREATE POLICY "Allow public delete" ON public.farm FOR DELETE USING (true);
 CREATE POLICY "Allow public delete" ON public.planting FOR DELETE USING (true);
 CREATE POLICY "Allow public delete" ON public.harvest FOR DELETE USING (true);
+
+-- ------------------------------------------------------------
+-- updated_at maintenance (B12): stamp each row on UPDATE
+-- ------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.set_updated_at() RETURNS trigger AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_farmer_updated   BEFORE UPDATE ON public.farmer   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+CREATE TRIGGER trg_farm_updated     BEFORE UPDATE ON public.farm     FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+CREATE TRIGGER trg_planting_updated BEFORE UPDATE ON public.planting FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+CREATE TRIGGER trg_harvest_updated  BEFORE UPDATE ON public.harvest  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();

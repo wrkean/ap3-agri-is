@@ -55,43 +55,44 @@ $pageTitle = 'Dashboard';
     <div class="flex divide-x divide-gray-100 min-w-max">
         <?php
         $stats = [
-            ['label' => 'Farmers', 'value' => $counts['farmers'], 'icon' => 'fa-users', 'color' => 'text-blue-600'],
-            ['label' => 'Farms', 'value' => $counts['farms'], 'icon' => 'fa-seedling', 'color' => 'text-purple-600'],
-            ['label' => 'Crops', 'value' => $counts['crops'], 'icon' => 'fa-carrot', 'color' => 'text-green-600'],
-            ['label' => 'Plantings', 'value' => $counts['planting'], 'icon' => 'fa-calendar-check', 'color' => 'text-orange-600'],
-            ['label' => 'Harvests', 'value' => $counts['harvest'], 'icon' => 'fa-wheat-awn', 'color' => 'text-red-600'],
+            ['label' => 'Farmers', 'value' => $counts['farmers'], 'icon' => 'fa-users', 'color' => 'text-blue-600', 'path' => '/farmers/'],
+            ['label' => 'Farms', 'value' => $counts['farms'], 'icon' => 'fa-seedling', 'color' => 'text-purple-600', 'path' => '/farms/'],
+            ['label' => 'Crops', 'value' => $counts['crops'], 'icon' => 'fa-carrot', 'color' => 'text-green-600', 'path' => '/crops/'],
+            ['label' => 'Plantings', 'value' => $counts['planting'], 'icon' => 'fa-calendar-check', 'color' => 'text-orange-600', 'path' => '/planting/'],
+            ['label' => 'Harvests', 'value' => $counts['harvest'], 'icon' => 'fa-wheat-awn', 'color' => 'text-red-600', 'path' => '/harvest/'],
         ];
         foreach ($stats as $s): ?>
-            <div class="flex-1 min-w-[120px] px-4 py-3 flex items-center gap-3">
+            <a href="<?php echo $s['path']; ?>" class="flex-1 min-w-[120px] px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition" aria-label="Open <?php echo $s['label']; ?>">
                 <i class="fa-solid <?php echo $s['icon']; ?> <?php echo $s['color']; ?> text-lg"></i>
                 <div>
                     <p class="text-xs text-gray-500 uppercase font-semibold leading-tight"><?php echo $s['label']; ?></p>
                     <p class="text-xl font-bold text-gray-900 leading-tight"><?php echo number_format($s['value']); ?></p>
                 </div>
-            </div>
+            </a>
         <?php endforeach; ?>
     </div>
 </div>
 
-<!-- Getting started (shown when no data exists yet) -->
-<?php if ($counts['farmers'] === 0): ?>
-<div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6 fade-in">
-    <h3 class="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+<!-- Getting started (always available as a collapsible panel) -->
+<details class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6 fade-in group">
+    <summary class="font-semibold text-blue-900 flex items-center gap-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
         <i class="fa-solid fa-rocket text-blue-600"></i> Getting Started
-    </h3>
-    <p class="text-sm text-blue-800 mb-3">Welcome! Follow these steps to set up your agriculture data:</p>
-    <ol class="list-decimal list-inside text-sm text-blue-800 space-y-1 mb-4">
-        <li><strong>Add Farmers</strong> — Register the farmers in your area</li>
-        <li><strong>Add Farms</strong> — Create farm records linked to farmers</li>
-        <li><strong>Add Crops</strong> — Define crop varieties and growing periods</li>
-        <li><strong>Record Plantings</strong> — Track what was planted, where, and when</li>
-        <li><strong>Record Harvests</strong> — Log harvest quantities and selling prices</li>
-    </ol>
-    <a href="/farmers/index.php?action=create" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">
-        <i class="fa-solid fa-plus"></i> Add Your First Farmer
-    </a>
-</div>
-<?php endif; ?>
+        <i class="fa-solid fa-chevron-down text-blue-400 ml-auto transition-transform duration-200 group-open:rotate-180"></i>
+    </summary>
+    <div class="mt-3">
+        <p class="text-sm text-blue-800 mb-3">Follow these steps to set up your agriculture data:</p>
+        <ol class="list-decimal list-inside text-sm text-blue-800 space-y-1 mb-4">
+            <li><strong>Add Farmers</strong> — Register the farmers in your area</li>
+            <li><strong>Add Farms</strong> — Create farm records linked to farmers</li>
+            <li><strong>Add Crops</strong> — Define crop varieties and growing periods</li>
+            <li><strong>Record Plantings</strong> — Track what was planted, where, and when</li>
+            <li><strong>Record Harvests</strong> — Log harvest quantities and selling prices</li>
+        </ol>
+        <a href="/farmers/index.php?action=create" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">
+            <i class="fa-solid fa-plus"></i> Add Your First Farmer
+        </a>
+    </div>
+</details>
 
 <!-- Total Harvested Quantity + Status Chart -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 fade-in">

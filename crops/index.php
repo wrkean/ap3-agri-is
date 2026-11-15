@@ -8,6 +8,31 @@ $cropModel = new Crop($db);
 $action = $_GET['action'] ?? 'list';
 $id = (int) ($_GET['id'] ?? 0);
 
+// Handle delete (POST + CSRF only; GET links are not allowed)
+if ($action === 'delete') {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        flash('error', 'Delete must be submitted from the delete button.');
+    } elseif (!validateCsrf()) {
+        flash('error', 'Invalid security token. Please try again.');
+    } elseif ($id <= 0) {
+        flash('error', 'Invalid record ID.');
+    } else {
+        $plantings = $db->select('planting', 'planting_id', ['crop_id=eq.' . $id]);
+        if (!empty($plantings)) {
+            flash('error', 'Cannot delete crop: has planting records.');
+        } else {
+            $result = $cropModel->delete($id);
+            if ($result === null) {
+                flash('error', 'Could not save. Please check your input.');
+            } else {
+                flash('success', 'Crop deleted.');
+            }
+        }
+    }
+    header('Location: /crops/index.php');
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCsrf()) {
         flash('error', 'Invalid security token. Please try again.');
@@ -28,8 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($data['variety'])) {
         $errors[] = 'Variety is required.';
     }
-    if (!$data['growing_period_days']) {
-        $errors[] = 'Growing period (days) is required.';
+    if ($data['growing_period_days'] <= 0) {
+        $errors[] = 'Growing period (days) must be greater than 0.';
     }
     if (!$data['season_id']) {
         $errors[] = 'Recommended season is required.';
@@ -41,29 +66,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
     if ($action === 'create') {
-        $cropModel->create($data);
+        $result = $cropModel->create($data);
+        if ($result === null) {
+            storeFormInput($data);
+            flash('error', 'Could not save. Please check your input.');
+            header('Location: /crops/index.php?action=create');
+            exit();
+        }
         flash('success', 'Crop created.');
         header('Location: /crops/index.php');
         exit();
     }
     if ($action === 'edit' && $id > 0) {
-        $cropModel->update($id, $data);
+        $result = $cropModel->update($id, $data);
+        if ($result === null) {
+            storeFormInput($data);
+            flash('error', 'Could not save. Please check your input.');
+            header('Location: /crops/index.php?action=edit&id=' . $id);
+            exit();
+        }
         flash('success', 'Crop updated.');
         header('Location: /crops/index.php');
         exit();
     }
-}
-
-if ($action === 'delete' && $id > 0) {
-    $plantings = $db->select('planting', 'planting_id', ['crop_id=eq.' . $id]);
-    if (!empty($plantings)) {
-        flash('error', 'Cannot delete crop: has planting records.');
-    } else {
-        $cropModel->delete($id);
-        flash('success', 'Crop deleted.');
-    }
-    header('Location: /crops/index.php');
-    exit();
 }
 
 $pageTitle = 'Crops';
@@ -76,8 +101,8 @@ $seasonOptions = $db->select('season', 'season_id,season_name', [], ['order' => 
 $search = trim($_GET['search'] ?? '');
 $catFilter = (int) ($_GET['category'] ?? 0);
 $seasonFilter = (int) ($_GET['season'] ?? 0);
-$sort = $_GET['sort'] ?? 'crop_id';
-$dir = $_GET['dir'] ?? 'asc';
+$sort = whitelistSort($_GET['sort'] ?? 'crop_id', ['crop_id', 'variety', 'growing_period_days'], 'crop_id');
+$dir = whitelistDir($_GET['dir'] ?? 'asc');
 $page = (int) ($_GET['page'] ?? 1);
 
 $filters = [];
@@ -125,6 +150,7 @@ if (!empty($formInput)) {
             <h2 class="text-lg font-semibold text-gray-800 mb-4"><?php echo $action === 'create'
                 ? 'Add Crop'
                 : 'Edit Crop'; ?></h2>
+            <p class="text-sm text-gray-500 -mt-2 mb-4">Fields marked * are required. Growing period (days) must be greater than 0.</p>
             <form method="POST" action="index.php?action=<?php
             echo $action;
             echo $id > 0 ? '&id=' . $id : '';
@@ -182,7 +208,7 @@ if (!empty($formInput)) {
     <div class="flex justify-between items-end mb-4 fade-in">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Crops</h1>
-            <p class="text-gray-500 text-sm">Manage crop varieties</p>
+            <p class="text-gray-500 text-sm">Manage crop varieties. Deleting a crop is blocked while planting records still reference it.</p>
         </div>
         <a href="index.php?action=create" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition flex items-center gap-2"><i class="fa-solid fa-plus"></i> Add Crop</a>
     </div>
@@ -263,9 +289,12 @@ if (!empty($formInput)) {
                                 <a href="index.php?action=edit&id=<?php echo $r[
                                     'crop_id'
                                 ]; ?>" class="text-blue-600 hover:underline text-sm">Edit</a>
-                                <a href="index.php?action=delete&id=<?php echo $r[
+                                <form method="POST" action="index.php?action=delete&id=<?php echo $r[
                                     'crop_id'
-                                ]; ?>" class="text-red-600 hover:underline text-sm ml-4" data-confirm="Delete this crop? Related planting records will be affected.">Delete</a>
+                                ]; ?>" class="inline-block">
+                                    <input type="hidden" name="csrf_token" value="<?php echo csrfToken(); ?>">
+                                    <button type="submit" data-confirm="Delete this crop? Related planting records will be affected." class="text-red-600 hover:underline text-sm ml-4">Delete</button>
+                                </form>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -276,8 +305,7 @@ if (!empty($formInput)) {
         <?php if ($total > 0): ?>
             <div class="px-6 py-4 border-t border-gray-100">
                 <?php echo renderPager(
-                    $_SERVER['PHP_SELF'] .
-                        '?' .
+                    '/crops/index.php?' .
                         http_build_query(
                             array_filter([
                                 'search' => $search,

@@ -9,6 +9,31 @@ $farmerModel = new Farmer($db);
 $action = $_GET['action'] ?? 'list';
 $id = (int) ($_GET['id'] ?? 0);
 
+// Handle delete (POST + CSRF only; GET links are not allowed)
+if ($action === 'delete') {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        flash('error', 'Delete must be submitted from the delete button.');
+    } elseif (!validateCsrf()) {
+        flash('error', 'Invalid security token. Please try again.');
+    } elseif ($id <= 0) {
+        flash('error', 'Invalid record ID.');
+    } else {
+        $plantings = $db->select('planting', 'planting_id', ['farm_id=eq.' . $id]);
+        if (!empty($plantings)) {
+            flash('error', 'Cannot delete farm: has planting records.');
+        } else {
+            $result = $farmModel->delete($id);
+            if ($result === null) {
+                flash('error', 'Could not save. Please check your input.');
+            } else {
+                flash('success', 'Farm deleted.');
+            }
+        }
+    }
+    header('Location: /farms/index.php');
+    exit();
+}
+
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCsrf()) {
@@ -51,29 +76,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
     if ($action === 'create') {
-        $farmModel->create($data);
+        $result = $farmModel->create($data);
+        if ($result === null) {
+            storeFormInput($data);
+            flash('error', 'Could not save. Please check your input.');
+            header('Location: /farms/index.php?action=create');
+            exit();
+        }
         flash('success', 'Farm created.');
         header('Location: /farms/index.php');
         exit();
     }
     if ($action === 'edit' && $id > 0) {
-        $farmModel->update($id, $data);
+        $result = $farmModel->update($id, $data);
+        if ($result === null) {
+            storeFormInput($data);
+            flash('error', 'Could not save. Please check your input.');
+            header('Location: /farms/index.php?action=edit&id=' . $id);
+            exit();
+        }
         flash('success', 'Farm updated.');
         header('Location: /farms/index.php');
         exit();
     }
-}
-
-if ($action === 'delete' && $id > 0) {
-    $plantings = $db->select('planting', 'planting_id', ['farm_id=eq.' . $id]);
-    if (!empty($plantings)) {
-        flash('error', 'Cannot delete farm: has planting records.');
-    } else {
-        $farmModel->delete($id);
-        flash('success', 'Farm deleted.');
-    }
-    header('Location: /farms/index.php');
-    exit();
 }
 
 $pageTitle = 'Farms';
@@ -86,8 +111,8 @@ $irrOptions = $db->select('irrigation_type', 'irrigation_type_id,type_name', [],
 // Search/filter/sort/pagination
 $search = trim($_GET['search'] ?? '');
 $irrFilter = (int) ($_GET['irrigation'] ?? 0);
-$sort = $_GET['sort'] ?? 'farm_id';
-$dir = $_GET['dir'] ?? 'asc';
+$sort = whitelistSort($_GET['sort'] ?? 'farm_id', ['farm_id', 'farm_name', 'area_hectares'], 'farm_id');
+$dir = whitelistDir($_GET['dir'] ?? 'asc');
 $page = (int) ($_GET['page'] ?? 1);
 
 $filters = [];
@@ -128,6 +153,7 @@ if (!empty($formInput)) {
             <h2 class="text-lg font-semibold text-gray-800 mb-4"><?php echo $action === 'create'
                 ? 'Add Farm'
                 : 'Edit Farm'; ?></h2>
+            <p class="text-sm text-gray-500 -mt-2 mb-4">Fields marked * are required. Area must be a positive number of hectares.</p>
             <form method="POST" action="index.php?action=<?php
             echo $action;
             echo $id > 0 ? '&id=' . $id : '';
@@ -204,7 +230,7 @@ if (!empty($formInput)) {
     <div class="flex justify-between items-end mb-4 fade-in">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Farms</h1>
-            <p class="text-gray-500 text-sm">Manage farm information</p>
+            <p class="text-gray-500 text-sm">Manage farm information. Deleting a farm is blocked while the farm still has planting records.</p>
         </div>
         <a href="index.php?action=create" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition flex items-center gap-2"><i class="fa-solid fa-plus"></i> Add Farm</a>
     </div>
@@ -278,9 +304,12 @@ if (!empty($formInput)) {
                                 <a href="index.php?action=edit&id=<?php echo $r[
                                     'farm_id'
                                 ]; ?>" class="text-blue-600 hover:underline text-sm">Edit</a>
-                                <a href="index.php?action=delete&id=<?php echo $r[
+                                <form method="POST" action="index.php?action=delete&id=<?php echo $r[
                                     'farm_id'
-                                ]; ?>" class="text-red-600 hover:underline text-sm ml-4" data-confirm="Delete this farm? Related planting records will also be affected.">Delete</a>
+                                ]; ?>" class="inline-block">
+                                    <input type="hidden" name="csrf_token" value="<?php echo csrfToken(); ?>">
+                                    <button type="submit" data-confirm="Delete this farm? Related planting records will also be affected." class="text-red-600 hover:underline text-sm ml-4">Delete</button>
+                                </form>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -291,8 +320,7 @@ if (!empty($formInput)) {
         <?php if ($total > 0): ?>
             <div class="px-6 py-4 border-t border-gray-100">
                 <?php echo renderPager(
-                    $_SERVER['PHP_SELF'] .
-                        '?' .
+                    '/farms/index.php?' .
                         http_build_query(
                             array_filter([
                                 'search' => $search,

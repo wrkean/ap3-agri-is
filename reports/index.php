@@ -24,10 +24,10 @@ $dateColumn = match ($reportType) {
     default => 'harvest_date',
 };
 $dateFilters = [];
-if ($dateFrom !== '' && DateTime::createFromFormat('Y-m-d', $dateFrom)) {
+if ($dateFrom !== '' && isValidDate($dateFrom)) {
     $dateFilters[] = $dateColumn . '=gte.' . $dateFrom;
 }
-if ($dateTo !== '' && DateTime::createFromFormat('Y-m-d', $dateTo)) {
+if ($dateTo !== '' && isValidDate($dateTo)) {
     $dateFilters[] = $dateColumn . '=lte.' . $dateTo;
 }
 
@@ -55,7 +55,8 @@ switch ($reportType) {
 }
 $cropLabels = $cropModel->labels();
 ?>
-<h1 class="text-2xl font-bold text-gray-800 mb-6 fade-in">Reports</h1>
+<h1 class="text-2xl font-bold text-gray-800 mb-1 fade-in">Reports</h1>
+<p class="text-sm text-gray-500 mb-6 fade-in">Administrators only. Pick a report and optional date range — dates must be real calendar dates (YYYY-MM-DD).</p>
 
 <!-- Report selector -->
 <div class="bg-white p-4 rounded-lg border border-gray-200 mb-6 fade-in">

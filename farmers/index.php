@@ -12,6 +12,31 @@ $error = '';
 $success = getFlash('success');
 $validationError = getFlash('error');
 
+// Handle delete (POST + CSRF only; GET links are not allowed)
+if ($action === 'delete') {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        flash('error', 'Delete must be submitted from the delete button.');
+    } elseif (!validateCsrf()) {
+        flash('error', 'Invalid security token. Please try again.');
+    } elseif ($id <= 0) {
+        flash('error', 'Invalid record ID.');
+    } else {
+        $farms = $farmModel->byFarmer($id);
+        if (!empty($farms)) {
+            flash('error', 'Cannot delete farmer: has associated farm records.');
+        } else {
+            $result = $farmerModel->delete($id);
+            if ($result === null) {
+                flash('error', 'Could not save. Please check your input.');
+            } else {
+                flash('success', 'Farmer deleted successfully.');
+            }
+        }
+    }
+    header('Location: /farmers/index.php');
+    exit();
+}
+
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCsrf()) {
@@ -37,8 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if (empty($data['date_registered'])) {
         $errors[] = 'Date registered is required.';
-    } elseif (!DateTime::createFromFormat('Y-m-d', $data['date_registered'])) {
-        $errors[] = 'Invalid date registered.';
+    } elseif (!isValidDate($data['date_registered'])) {
+        $errors[] = 'Invalid date registered. Use a real calendar date (YYYY-MM-DD).';
     }
 
     if ($errors) {
@@ -49,37 +74,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'create') {
-        $farmerModel->create($data);
+        $result = $farmerModel->create($data);
+        if ($result === null) {
+            storeFormInput($data);
+            flash('error', 'Could not save. Please check your input.');
+            header('Location: /farmers/index.php?action=create');
+            exit();
+        }
         flash('success', 'Farmer created successfully.');
         header('Location: /farmers/index.php');
         exit();
     } elseif ($action === 'edit' && $id > 0) {
-        $farmerModel->update($id, $data);
+        $result = $farmerModel->update($id, $data);
+        if ($result === null) {
+            storeFormInput($data);
+            flash('error', 'Could not save. Please check your input.');
+            header('Location: /farmers/index.php?action=edit&id=' . $id);
+            exit();
+        }
         flash('success', 'Farmer updated successfully.');
         header('Location: /farmers/index.php');
         exit();
     }
 }
 
-// Handle delete
-if ($action === 'delete' && $id > 0) {
-    $farms = $farmModel->byFarmer($id);
-    if (!empty($farms)) {
-        flash('error', 'Cannot delete farmer: has associated farm records.');
-    } else {
-        $farmerModel->delete($id);
-        flash('success', 'Farmer deleted successfully.');
-    }
-    header('Location: /farmers/index.php');
-    exit();
-}
-
 $pageTitle = 'Farmers';
 
 // List with search/filter/sort/pagination
 $search = trim($_GET['search'] ?? '');
-$sort = $_GET['sort'] ?? 'farmer_id';
-$dir = $_GET['dir'] ?? 'asc';
+$sort = whitelistSort($_GET['sort'] ?? 'farmer_id', ['farmer_id', 'first_name'], 'farmer_id');
+$dir = whitelistDir($_GET['dir'] ?? 'asc');
 $page = (int) ($_GET['page'] ?? 1);
 
 $filters = [];
@@ -123,6 +147,7 @@ if (!empty($formInput)) {
             <h2 class="text-lg font-semibold text-gray-800 mb-4">
                 <?php echo $action === 'create' ? 'Add Farmer' : 'Edit Farmer'; ?>
             </h2>
+            <p class="text-sm text-gray-500 -mt-2 mb-4">Fields marked * are required. Dates must be real calendar dates in YYYY-MM-DD format.</p>
             <form method="POST" action="index.php?action=<?php
             echo $action;
             echo $id > 0 ? '&id=' . $id : '';
@@ -176,7 +201,7 @@ if (!empty($formInput)) {
     <div class="flex justify-between items-end mb-4 fade-in">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Farmers</h1>
-            <p class="text-gray-500 text-sm">Manage farmer information</p>
+            <p class="text-gray-500 text-sm">Manage farmer information. Deleting a farmer is blocked while the farmer still has farms.</p>
         </div>
         <a href="index.php?action=create" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition flex items-center gap-2">
             <i class="fa-solid fa-plus"></i> Add Farmer
@@ -236,9 +261,12 @@ if (!empty($formInput)) {
                                 <a href="index.php?action=edit&id=<?php echo $r[
                                     'farmer_id'
                                 ]; ?>" class="text-blue-600 hover:underline text-sm">Edit</a>
-                                <a href="index.php?action=delete&id=<?php echo $r[
+                                <form method="POST" action="index.php?action=delete&id=<?php echo $r[
                                     'farmer_id'
-                                ]; ?>" class="text-red-600 hover:underline text-sm ml-4" data-confirm="Delete this farmer? This cannot be undone.">Delete</a>
+                                ]; ?>" class="inline-block">
+                                    <input type="hidden" name="csrf_token" value="<?php echo csrfToken(); ?>">
+                                    <button type="submit" data-confirm="Delete this farmer? This cannot be undone." class="text-red-600 hover:underline text-sm ml-4">Delete</button>
+                                </form>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -249,8 +277,7 @@ if (!empty($formInput)) {
         <?php if ($total > 0): ?>
             <div class="px-6 py-4 border-t border-gray-100">
                 <?php echo renderPager(
-                    $_SERVER['PHP_SELF'] .
-                        '?' .
+                    '/farmers/index.php?' .
                         http_build_query(array_filter(['search' => $search, 'sort' => $sort, 'dir' => $dir])),
                     $p['page'],
                     $p['pages'],

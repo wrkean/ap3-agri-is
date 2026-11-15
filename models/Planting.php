@@ -35,24 +35,30 @@ class Planting
         return $this->db->find('planting', $id, 'planting_id');
     }
 
-    public function create(array $data): array
+    public function create(array $data): ?array
     {
         $result = $this->db->insert('planting', $data);
-        (new Cache())->flush();
+        if ($result !== null) {
+            (new Cache())->flush();
+        }
         return $result;
     }
 
-    public function update(int $id, array $data): array
+    public function update(int $id, array $data): ?array
     {
         $result = $this->db->update('planting', $data, ['planting_id=eq.' . $id]);
-        (new Cache())->flush();
+        if ($result !== null) {
+            (new Cache())->flush();
+        }
         return $result;
     }
 
-    public function delete(int $id): array
+    public function delete(int $id): ?array
     {
         $result = $this->db->delete('planting', ['planting_id=eq.' . $id]);
-        (new Cache())->flush();
+        if ($result !== null) {
+            (new Cache())->flush();
+        }
         return $result;
     }
 
@@ -60,7 +66,13 @@ class Planting
     {
         $filters = [];
         if ($term !== '') {
-            $filters[] = 'planting_date=ilike.%25' . rawurlencode($term) . '%25';
+            // planting_date is a date column, so only exact YYYY-MM-DD matches
+            // can work; anything else simply matches nothing.
+            if (isValidDate($term)) {
+                $filters[] = 'planting_date=eq.' . $term;
+            } else {
+                $filters[] = 'planting_id=eq.-1';
+            }
         }
         if ($statusId !== '') {
             $filters[] = 'planting_status_id=eq.' . (int) $statusId;

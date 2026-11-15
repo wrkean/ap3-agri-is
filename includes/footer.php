@@ -56,11 +56,11 @@
         var cancelBtn = document.getElementById('deleteDialogCancel');
         var confirmBtn = document.getElementById('deleteDialogConfirm');
         var desc = document.getElementById('deleteDialogDesc');
-        var pendingHref = null;
+        var pendingForm = null;
         var previousFocus = null;
 
-        function openDialog(message, href) {
-            pendingHref = href;
+        function openDialog(message, form) {
+            pendingForm = form;
             desc.textContent = message || 'Are you sure you want to delete this record? This action cannot be undone.';
             dialog.classList.remove('hidden');
             previousFocus = document.activeElement;
@@ -69,20 +69,20 @@
 
         function closeDialog() {
             dialog.classList.add('hidden');
-            pendingHref = null;
+            pendingForm = null;
             if (previousFocus) previousFocus.focus();
         }
 
         document.querySelectorAll('[data-confirm]').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
-                openDialog(btn.getAttribute('data-confirm'), btn.getAttribute('href'));
+                openDialog(btn.getAttribute('data-confirm'), btn.closest('form'));
             });
         });
 
         if (confirmBtn) {
             confirmBtn.addEventListener('click', function () {
-                if (pendingHref) window.location.href = pendingHref;
+                if (pendingForm) pendingForm.submit();
             });
         }
         if (cancelBtn) {

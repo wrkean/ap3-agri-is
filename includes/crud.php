@@ -58,6 +58,33 @@ function gradeChartColors(): array
     return ['#10b981', '#3b82f6', '#f59e0b'];
 }
 
+/**
+ * Strictly validate a Y-m-d date string.
+ * Returns true only for real, possible calendar dates
+ * (rejects inputs like 2026-02-31).
+ */
+function isValidDate(string $d): bool
+{
+    $dt = DateTime::createFromFormat('Y-m-d', $d);
+    return $dt !== false && $dt->format('Y-m-d') === $d;
+}
+
+/**
+ * Whitelist a sort column from user input; fall back to $default.
+ */
+function whitelistSort(string $sort, array $allowed, string $default): string
+{
+    return in_array($sort, $allowed, true) ? $sort : $default;
+}
+
+/**
+ * Allow only asc or desc (case-insensitive); fall back to asc.
+ */
+function whitelistDir(string $dir): string
+{
+    return strtolower(trim($dir)) === 'desc' ? 'desc' : 'asc';
+}
+
 function pagination(int $page, int $total, int $per = 10): array
 {
     $pages = max(1, (int) ceil($total / $per));
@@ -80,17 +107,13 @@ function renderPager(string $baseUrl, int $page, int $pages): string
     if ($page > 1) {
         $html .=
             '<a href="' .
-            $baseUrl .
-            '&page=' .
-            ($page - 1) .
+            e($baseUrl . '&page=' . ($page - 1)) .
             '" class="px-3 py-1 border rounded hover:bg-gray-100">Previous</a>';
     }
     if ($page < $pages) {
         $html .=
             '<a href="' .
-            $baseUrl .
-            '&page=' .
-            ($page + 1) .
+            e($baseUrl . '&page=' . ($page + 1)) .
             '" class="px-3 py-1 border rounded hover:bg-gray-100">Next</a>';
     }
     $html .= '</div></div>';

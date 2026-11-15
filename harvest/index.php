@@ -10,6 +10,26 @@ $cropModel = new Crop($db);
 $action = $_GET['action'] ?? 'list';
 $id = (int) ($_GET['id'] ?? 0);
 
+// Handle delete (POST + CSRF only; GET links are not allowed)
+if ($action === 'delete') {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        flash('error', 'Delete must be submitted from the delete button.');
+    } elseif (!validateCsrf()) {
+        flash('error', 'Invalid security token. Please try again.');
+    } elseif ($id <= 0) {
+        flash('error', 'Invalid record ID.');
+    } else {
+        $result = $harvestModel->delete($id);
+        if ($result === null) {
+            flash('error', 'Could not save. Please check your input.');
+        } else {
+            flash('success', 'Harvest deleted.');
+        }
+    }
+    header('Location: /harvest/index.php');
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCsrf()) {
         flash('error', 'Invalid security token. Please try again.');
@@ -29,8 +49,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$data['planting_id']) {
         $errors[] = 'Planting record is required.';
     }
-    if (!$data['harvest_date'] || !DateTime::createFromFormat('Y-m-d', $data['harvest_date'])) {
-        $errors[] = 'Valid harvest date is required.';
+    if (!$data['harvest_date'] || !isValidDate($data['harvest_date'])) {
+        $errors[] = 'Valid harvest date is required (real calendar date, YYYY-MM-DD).';
+    }
+    if (
+        $data['planting_id'] > 0 &&
+        $data['harvest_date'] !== '' &&
+        isValidDate($data['harvest_date'])
+    ) {
+        // Harvest cannot precede the planting it belongs to.
+        $plantingRow = $plantingModel->find($data['planting_id']);
+        if (
+            $plantingRow !== null &&
+            isset($plantingRow['planting_date']) &&
+            isValidDate($plantingRow['planting_date']) &&
+            $data['harvest_date'] < $plantingRow['planting_date']
+        ) {
+            $errors[] = 'Harvest date must be on or after the planting date (' . $plantingRow['planting_date'] . ').';
+        }
     }
     if (!is_numeric($data['quantity_kg']) || $data['quantity_kg'] <= 0) {
         $errors[] = 'Quantity must be positive.';
@@ -48,24 +84,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
     if ($action === 'create') {
-        $harvestModel->create($data);
+        $result = $harvestModel->create($data);
+        if ($result === null) {
+            storeFormInput($data);
+            flash('error', 'Could not save. Please check your input.');
+            header('Location: /harvest/index.php?action=create');
+            exit();
+        }
         flash('success', 'Harvest record created.');
         header('Location: /harvest/index.php');
         exit();
     }
     if ($action === 'edit' && $id > 0) {
-        $harvestModel->update($id, $data);
+        $result = $harvestModel->update($id, $data);
+        if ($result === null) {
+            storeFormInput($data);
+            flash('error', 'Could not save. Please check your input.');
+            header('Location: /harvest/index.php?action=edit&id=' . $id);
+            exit();
+        }
         flash('success', 'Harvest updated.');
         header('Location: /harvest/index.php');
         exit();
     }
-}
-
-if ($action === 'delete' && $id > 0) {
-    $harvestModel->delete($id);
-    flash('success', 'Harvest deleted.');
-    header('Location: /harvest/index.php');
-    exit();
 }
 
 $pageTitle = 'Harvest Records';
@@ -77,8 +118,8 @@ $cropLabels = $cropModel->labels();
 
 $search = trim($_GET['search'] ?? '');
 $gradeFilter = (int) ($_GET['grade'] ?? 0);
-$sort = $_GET['sort'] ?? 'harvest_id';
-$dir = $_GET['dir'] ?? 'asc';
+$sort = whitelistSort($_GET['sort'] ?? 'harvest_id', ['harvest_id', 'harvest_date', 'quantity_kg', 'selling_price_per_kg'], 'harvest_id');
+$dir = whitelistDir($_GET['dir'] ?? 'asc');
 $page = (int) ($_GET['page'] ?? 1);
 
 $filters = [];
@@ -117,6 +158,7 @@ if (!empty($formInput)) {
             <h2 class="text-lg font-semibold text-gray-800 mb-4"><?php echo $action === 'create'
                 ? 'Add Harvest Record'
                 : 'Edit Harvest Record'; ?></h2>
+            <p class="text-sm text-gray-500 -mt-2 mb-4">Fields marked * are required. Harvest date must be on or after the planting date of the selected planting record.</p>
             <form method="POST" action="index.php?action=<?php
             echo $action;
             echo $id > 0 ? '&id=' . $id : '';
@@ -201,7 +243,7 @@ $pl['planting_id']
     <div class="flex justify-between items-end mb-4 fade-in">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Harvest Records</h1>
-            <p class="text-gray-500 text-sm">Track harvests and quality</p>
+            <p class="text-gray-500 text-sm">Track harvests and quality. Harvest date must be on or after the planting date.</p>
         </div>
         <a href="index.php?action=create" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition flex items-center gap-2"><i class="fa-solid fa-plus"></i> Add Record</a>
     </div>
@@ -286,9 +328,12 @@ $pl['planting_id']
                                 <a href="index.php?action=edit&id=<?php echo $r[
                                     'harvest_id'
                                 ]; ?>" class="text-blue-600 hover:underline text-sm">Edit</a>
-                                <a href="index.php?action=delete&id=<?php echo $r[
+                                <form method="POST" action="index.php?action=delete&id=<?php echo $r[
                                     'harvest_id'
-                                ]; ?>" class="text-red-600 hover:underline text-sm ml-4" data-confirm="Delete this harvest record?">Delete</a>
+                                ]; ?>" class="inline-block">
+                                    <input type="hidden" name="csrf_token" value="<?php echo csrfToken(); ?>">
+                                    <button type="submit" data-confirm="Delete this harvest record?" class="text-red-600 hover:underline text-sm ml-4">Delete</button>
+                                </form>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -299,8 +344,7 @@ $pl['planting_id']
         <?php if ($total > 0): ?>
             <div class="px-6 py-4 border-t border-gray-100">
                 <?php echo renderPager(
-                    $_SERVER['PHP_SELF'] .
-                        '?' .
+                    '/harvest/index.php?' .
                         http_build_query(
                             array_filter([
                                 'search' => $search,

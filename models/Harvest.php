@@ -35,24 +35,30 @@ class Harvest
         return $this->db->find('harvest', $id, 'harvest_id');
     }
 
-    public function create(array $data): array
+    public function create(array $data): ?array
     {
         $result = $this->db->insert('harvest', $data);
-        (new Cache())->flush();
+        if ($result !== null) {
+            (new Cache())->flush();
+        }
         return $result;
     }
 
-    public function update(int $id, array $data): array
+    public function update(int $id, array $data): ?array
     {
         $result = $this->db->update('harvest', $data, ['harvest_id=eq.' . $id]);
-        (new Cache())->flush();
+        if ($result !== null) {
+            (new Cache())->flush();
+        }
         return $result;
     }
 
-    public function delete(int $id): array
+    public function delete(int $id): ?array
     {
         $result = $this->db->delete('harvest', ['harvest_id=eq.' . $id]);
-        (new Cache())->flush();
+        if ($result !== null) {
+            (new Cache())->flush();
+        }
         return $result;
     }
 
