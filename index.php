@@ -189,7 +189,32 @@ $pageTitle = 'Dashboard';
     </div>
 </div>
 
-<!-- Quick actions removed — navigation is already available in the header nav bar -->
+<!-- Quick actions: create new records -->
+<div class="mb-8 fade-in">
+    <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Quick Actions</h2>
+    <div class="flex flex-wrap gap-2">
+        <a href="/farmers/index.php?action=create" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition">
+            <i class="fa-solid fa-plus text-blue-600"></i> New Farmer
+        </a>
+        <a href="/farms/index.php?action=create" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 transition">
+            <i class="fa-solid fa-plus text-purple-600"></i> New Farm
+        </a>
+        <a href="/crops/index.php?action=create" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition">
+            <i class="fa-solid fa-plus text-green-600"></i> New Crop
+        </a>
+        <a href="/planting/index.php?action=create" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-orange-50 hover:border-orange-300 hover:text-orange-700 transition">
+            <i class="fa-solid fa-plus text-orange-600"></i> New Planting
+        </a>
+        <a href="/harvest/index.php?action=create" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition">
+            <i class="fa-solid fa-plus text-red-600"></i> New Harvest
+        </a>
+        <?php if (isAdmin()): ?>
+        <a href="/reports/index.php" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700 transition">
+            <i class="fa-solid fa-chart-bar text-indigo-600"></i> Reports
+        </a>
+        <?php endif; ?>
+    </div>
+</div>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
 
