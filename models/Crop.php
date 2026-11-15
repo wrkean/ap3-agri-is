@@ -40,24 +40,30 @@ class Crop
         return $this->db->find('crop', $id, 'crop_id');
     }
 
-    public function create(array $data): array
+    public function create(array $data): ?array
     {
         $result = $this->db->insert('crop', $data);
-        (new Cache())->flush();
+        if ($result !== null) {
+            (new Cache())->flush();
+        }
         return $result;
     }
 
-    public function update(int $id, array $data): array
+    public function update(int $id, array $data): ?array
     {
         $result = $this->db->update('crop', $data, ['crop_id=eq.' . $id]);
-        (new Cache())->flush();
+        if ($result !== null) {
+            (new Cache())->flush();
+        }
         return $result;
     }
 
-    public function delete(int $id): array
+    public function delete(int $id): ?array
     {
         $result = $this->db->delete('crop', ['crop_id=eq.' . $id]);
-        (new Cache())->flush();
+        if ($result !== null) {
+            (new Cache())->flush();
+        }
         return $result;
     }
 

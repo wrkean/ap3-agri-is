@@ -35,24 +35,30 @@ class Farm
         return $this->db->find('farm', $id, 'farm_id');
     }
 
-    public function create(array $data): array
+    public function create(array $data): ?array
     {
         $result = $this->db->insert('farm', $data);
-        (new Cache())->flush();
+        if ($result !== null) {
+            (new Cache())->flush();
+        }
         return $result;
     }
 
-    public function update(int $id, array $data): array
+    public function update(int $id, array $data): ?array
     {
         $result = $this->db->update('farm', $data, ['farm_id=eq.' . $id]);
-        (new Cache())->flush();
+        if ($result !== null) {
+            (new Cache())->flush();
+        }
         return $result;
     }
 
-    public function delete(int $id): array
+    public function delete(int $id): ?array
     {
         $result = $this->db->delete('farm', ['farm_id=eq.' . $id]);
-        (new Cache())->flush();
+        if ($result !== null) {
+            (new Cache())->flush();
+        }
         return $result;
     }
 
