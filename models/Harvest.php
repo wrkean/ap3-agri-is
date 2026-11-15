@@ -11,12 +11,23 @@ class Harvest
 
     public function all(array $filters = [], array $options = []): array
     {
-        return $this->db->select(
+        $cache = new Cache();
+        if (empty($filters) && empty($options)) {
+            $cached = $cache->get('harvest:all');
+            if ($cached !== null) {
+                return $cached;
+            }
+        }
+        $rows = $this->db->select(
             'harvest',
             '*,quality_grade(grade_name),planting(farm(farm_name),crop(crop_id,variety))',
             $filters,
             $options,
         );
+        if (empty($filters) && empty($options)) {
+            $cache->set('harvest:all', $rows, 300);
+        }
+        return $rows;
     }
 
     public function find(int $id): ?array
@@ -26,17 +37,23 @@ class Harvest
 
     public function create(array $data): array
     {
-        return $this->db->insert('harvest', $data);
+        $result = $this->db->insert('harvest', $data);
+        (new Cache())->flush();
+        return $result;
     }
 
     public function update(int $id, array $data): array
     {
-        return $this->db->update('harvest', $data, ['harvest_id=eq.' . $id]);
+        $result = $this->db->update('harvest', $data, ['harvest_id=eq.' . $id]);
+        (new Cache())->flush();
+        return $result;
     }
 
     public function delete(int $id): array
     {
-        return $this->db->delete('harvest', ['harvest_id=eq.' . $id]);
+        $result = $this->db->delete('harvest', ['harvest_id=eq.' . $id]);
+        (new Cache())->flush();
+        return $result;
     }
 
     /**
@@ -72,6 +89,11 @@ class Harvest
     /** Total quantity, total value and quantity-weighted average price. */
     public function stats(): array
     {
+        $cache = new Cache();
+        $cached = $cache->get('harvest:stats');
+        if ($cached !== null) {
+            return $cached;
+        }
         $rows = $this->db->select('harvest', 'quantity_kg,selling_price_per_kg');
         $quantity = 0.0;
         $value = 0.0;
@@ -80,10 +102,12 @@ class Harvest
             $quantity += $qty;
             $value += $qty * (float) ($row['selling_price_per_kg'] ?? 0);
         }
-        return [
+        $result = [
             'quantity' => $quantity,
             'value' => $value,
             'average_price' => $quantity > 0 ? $value / $quantity : 0.0,
         ];
+        $cache->set('harvest:stats', $result, 120);
+        return $result;
     }
 }

@@ -15,12 +15,24 @@ class Crop
      */
     public function all(array $filters = [], array $options = []): array
     {
-        return $this->db->select(
+        $cache = new Cache();
+        // Only cache unfiltered list queries.
+        if (empty($filters) && empty($options)) {
+            $cached = $cache->get('crop:all');
+            if ($cached !== null) {
+                return $cached;
+            }
+        }
+        $rows = $this->db->select(
             'crop',
             '*,species(crop_name,crop_category(category_name)),season(season_name)',
             $filters,
             $options,
         );
+        if (empty($filters) && empty($options)) {
+            $cache->set('crop:all', $rows, 300);
+        }
+        return $rows;
     }
 
     public function find(int $id): ?array
@@ -30,17 +42,23 @@ class Crop
 
     public function create(array $data): array
     {
-        return $this->db->insert('crop', $data);
+        $result = $this->db->insert('crop', $data);
+        (new Cache())->flush();
+        return $result;
     }
 
     public function update(int $id, array $data): array
     {
-        return $this->db->update('crop', $data, ['crop_id=eq.' . $id]);
+        $result = $this->db->update('crop', $data, ['crop_id=eq.' . $id]);
+        (new Cache())->flush();
+        return $result;
     }
 
     public function delete(int $id): array
     {
-        return $this->db->delete('crop', ['crop_id=eq.' . $id]);
+        $result = $this->db->delete('crop', ['crop_id=eq.' . $id]);
+        (new Cache())->flush();
+        return $result;
     }
 
     /**

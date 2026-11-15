@@ -8,7 +8,18 @@ class Farmer {
     }
 
     public function all(array $filters = [], array $options = []): array {
-        return $this->db->select('farmer', '*', $filters, $options);
+        $cache = new Cache();
+        if (empty($filters) && empty($options)) {
+            $cached = $cache->get('farmer:all');
+            if ($cached !== null) {
+                return $cached;
+            }
+        }
+        $rows = $this->db->select('farmer', '*', $filters, $options);
+        if (empty($filters) && empty($options)) {
+            $cache->set('farmer:all', $rows, 300);
+        }
+        return $rows;
     }
 
     /** Farmers with their farms (1:M) for the farmers-and-farms report. */
@@ -26,15 +37,21 @@ class Farmer {
     }
 
     public function create(array $data): array {
-        return $this->db->insert('farmer', $data);
+        $result = $this->db->insert('farmer', $data);
+        (new Cache())->flush();
+        return $result;
     }
 
     public function update(int $id, array $data): array {
-        return $this->db->update('farmer', $data, ['farmer_id=eq.' . $id]);
+        $result = $this->db->update('farmer', $data, ['farmer_id=eq.' . $id]);
+        (new Cache())->flush();
+        return $result;
     }
 
     public function delete(int $id): array {
-        return $this->db->delete('farmer', ['farmer_id=eq.' . $id]);
+        $result = $this->db->delete('farmer', ['farmer_id=eq.' . $id]);
+        (new Cache())->flush();
+        return $result;
     }
 
     public function search(string $term): array {

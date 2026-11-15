@@ -11,12 +11,23 @@ class Planting
 
     public function all(array $filters = [], array $options = []): array
     {
-        return $this->db->select(
+        $cache = new Cache();
+        if (empty($filters) && empty($options)) {
+            $cached = $cache->get('planting:all');
+            if ($cached !== null) {
+                return $cached;
+            }
+        }
+        $rows = $this->db->select(
             'planting',
             '*,farm(farm_name),crop(variety,species(crop_name)),planting_status(status_name)',
             $filters,
             $options,
         );
+        if (empty($filters) && empty($options)) {
+            $cache->set('planting:all', $rows, 300);
+        }
+        return $rows;
     }
 
     public function find(int $id): ?array
@@ -26,17 +37,23 @@ class Planting
 
     public function create(array $data): array
     {
-        return $this->db->insert('planting', $data);
+        $result = $this->db->insert('planting', $data);
+        (new Cache())->flush();
+        return $result;
     }
 
     public function update(int $id, array $data): array
     {
-        return $this->db->update('planting', $data, ['planting_id=eq.' . $id]);
+        $result = $this->db->update('planting', $data, ['planting_id=eq.' . $id]);
+        (new Cache())->flush();
+        return $result;
     }
 
     public function delete(int $id): array
     {
-        return $this->db->delete('planting', ['planting_id=eq.' . $id]);
+        $result = $this->db->delete('planting', ['planting_id=eq.' . $id]);
+        (new Cache())->flush();
+        return $result;
     }
 
     public function search(string $term, string $statusId = '', string $farmId = ''): array
@@ -63,6 +80,11 @@ class Planting
      * Supabase/PostgREST disables aggregate functions by default). */
     public function byStatus(): array
     {
+        $cache = new Cache();
+        $cached = $cache->get('planting:byStatus');
+        if ($cached !== null) {
+            return $cached;
+        }
         $rows = $this->db->select('planting', 'planting_status_id');
         $counts = [];
         foreach ($rows as $row) {
@@ -73,6 +95,7 @@ class Planting
         foreach ($counts as $id => $count) {
             $result[] = ['planting_status_id' => $id, 'count' => $count];
         }
+        $cache->set('planting:byStatus', $result, 120);
         return $result;
     }
 }

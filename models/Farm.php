@@ -11,12 +11,23 @@ class Farm
 
     public function all(array $filters = [], array $options = []): array
     {
-        return $this->db->select(
+        $cache = new Cache();
+        if (empty($filters) && empty($options)) {
+            $cached = $cache->get('farm:all');
+            if ($cached !== null) {
+                return $cached;
+            }
+        }
+        $rows = $this->db->select(
             'farm',
             '*,farmer(first_name,last_name),soil_type(type_name),irrigation_type(type_name)',
             $filters,
             $options,
         );
+        if (empty($filters) && empty($options)) {
+            $cache->set('farm:all', $rows, 300);
+        }
+        return $rows;
     }
 
     public function find(int $id): ?array
@@ -26,17 +37,23 @@ class Farm
 
     public function create(array $data): array
     {
-        return $this->db->insert('farm', $data);
+        $result = $this->db->insert('farm', $data);
+        (new Cache())->flush();
+        return $result;
     }
 
     public function update(int $id, array $data): array
     {
-        return $this->db->update('farm', $data, ['farm_id=eq.' . $id]);
+        $result = $this->db->update('farm', $data, ['farm_id=eq.' . $id]);
+        (new Cache())->flush();
+        return $result;
     }
 
     public function delete(int $id): array
     {
-        return $this->db->delete('farm', ['farm_id=eq.' . $id]);
+        $result = $this->db->delete('farm', ['farm_id=eq.' . $id]);
+        (new Cache())->flush();
+        return $result;
     }
 
     public function search(string $term, string $irrigationId = ''): array
