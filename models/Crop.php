@@ -54,7 +54,7 @@ class Crop
             if ($word === '') {
                 continue;
             }
-            $w = '%' . rawurlencode($word) . '%';
+            $w = '%25' . rawurlencode($word) . '%25';
             $speciesIds = $this->speciesIdsMatching($word);
             $parts = ['variety.ilike.' . $w];
             if ($speciesIds) {
@@ -76,7 +76,7 @@ class Crop
     public function speciesIdsMatching(string $term): array
     {
         $rows = $this->db->select('species', 'species_id', [
-            'crop_name=ilike.%' . rawurlencode($term) . '%',
+            'crop_name=ilike.%25' . rawurlencode($term) . '%25',
         ]);
         return array_map('intval', array_column($rows, 'species_id'));
     }

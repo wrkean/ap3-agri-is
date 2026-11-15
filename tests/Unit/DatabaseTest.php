@@ -76,7 +76,7 @@ class DatabaseTest extends TestCase {
     }
 
     public function testSelectWithIlikeFilter(): void {
-        $farmers = $this->db->select('farmer', 'farmer_id,first_name', ['first_name=ilike.%Juan%']);
+        $farmers = $this->db->select('farmer', 'farmer_id,first_name', ['first_name=ilike.%25Juan%25']);
         $this->assertIsArray($farmers);
         $this->assertGreaterThanOrEqual(1, count($farmers));
         $this->assertEquals('Juan', $farmers[0]['first_name']);
@@ -84,7 +84,7 @@ class DatabaseTest extends TestCase {
 
     public function testSelectWithOrFilter(): void {
         $farmers = $this->db->select('farmer', 'farmer_id,first_name,last_name', [
-            'or=(first_name.ilike.%Juan%,last_name.ilike.%Cruz%)',
+            'or=(first_name.ilike.%25Juan%25,last_name.ilike.%25Cruz%25)',
         ]);
         $this->assertIsArray($farmers);
         $this->assertGreaterThanOrEqual(1, count($farmers));

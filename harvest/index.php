@@ -77,7 +77,7 @@ $page = (int) ($_GET['page'] ?? 1);
 $filters = [];
 if ($search !== '') {
     $grades = $db->select('quality_grade', 'quality_grade_id', [
-        'grade_name=ilike.%' . rawurlencode($search) . '%',
+        'grade_name=ilike.%25' . rawurlencode($search) . '%25',
     ]);
     $ids = array_map('intval', array_column($grades, 'quality_grade_id'));
     $filters[] = 'quality_grade_id=in.(' . implode(',', $ids ?: [0]) . ')';

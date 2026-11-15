@@ -88,7 +88,7 @@ if ($search !== '') {
     foreach (preg_split('/\s+/', trim($search)) as $word) {
         if ($word === '') continue;
         $w = rawurlencode($word);
-        $filters[] = 'or=(farm_name.ilike.%' . $w . '%,location.ilike.%' . $w . '%)';
+        $filters[] = 'or=(farm_name.ilike.%25' . $w . '%25,location.ilike.%25' . $w . '%25)';
     }
 }
 if ($irrFilter > 0) {

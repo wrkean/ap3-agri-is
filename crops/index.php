@@ -78,7 +78,7 @@ if ($search !== '') {
     foreach (preg_split('/\s+/', trim($search)) as $word) {
         if ($word === '') continue;
         $w = rawurlencode($word);
-        $parts = ['variety.ilike.%' . $w . '%'];
+        $parts = ['variety.ilike.%25' . $w . '%25'];
         $speciesIds = $cropModel->speciesIdsMatching($word);
         if ($speciesIds) {
             $parts[] = 'species_id.in.(' . implode(',', $speciesIds) . ')';

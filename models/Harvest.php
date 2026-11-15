@@ -48,7 +48,7 @@ class Harvest
         $filters = [];
         if ($term !== '') {
             $grades = $this->db->select('quality_grade', 'quality_grade_id', [
-                'grade_name=ilike.%' . rawurlencode($term) . '%',
+                'grade_name=ilike.%25' . rawurlencode($term) . '%25',
             ]);
             $ids = array_map('intval', array_column($grades, 'quality_grade_id'));
             $filters[] = 'quality_grade_id=in.(' . implode(',', $ids ?: [0]) . ')';

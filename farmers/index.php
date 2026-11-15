@@ -80,7 +80,7 @@ if ($search !== '') {
     foreach (preg_split('/\s+/', trim($search)) as $word) {
         if ($word === '') continue;
         $w = rawurlencode($word);
-        $filters[] = 'or=(first_name.ilike.%' . $w . '%,last_name.ilike.%' . $w . '%,address.ilike.%' . $w . '%)';
+        $filters[] = 'or=(first_name.ilike.%25' . $w . '%25,last_name.ilike.%25' . $w . '%25,address.ilike.%25' . $w . '%25)';
     }
 }
 

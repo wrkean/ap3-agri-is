@@ -91,7 +91,7 @@ $page = (int) ($_GET['page'] ?? 1);
 
 $filters = [];
 if ($search !== '') {
-    $filters[] = 'planting_date=ilike.%' . rawurlencode($search) . '%';
+    $filters[] = 'planting_date=ilike.%25' . rawurlencode($search) . '%25';
 }
 if ($statusFilter > 0) {
     $filters[] = 'planting_status_id=eq.' . $statusFilter;

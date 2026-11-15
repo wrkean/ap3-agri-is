@@ -47,7 +47,7 @@ class Farm
                 continue;
             }
             $w = rawurlencode($word);
-            $filters[] = 'or=(farm_name.ilike.%' . $w . '%,location.ilike.%' . $w . '%)';
+            $filters[] = 'or=(farm_name.ilike.%25' . $w . '%25,location.ilike.%25' . $w . '%25)';
         }
         if ($irrigationId !== '') {
             $filters[] = 'irrigation_type_id=eq.' . (int) $irrigationId;

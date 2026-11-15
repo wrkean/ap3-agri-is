@@ -43,7 +43,7 @@ class Planting
     {
         $filters = [];
         if ($term !== '') {
-            $filters[] = 'planting_date=ilike.%' . rawurlencode($term) . '%';
+            $filters[] = 'planting_date=ilike.%25' . rawurlencode($term) . '%25';
         }
         if ($statusId !== '') {
             $filters[] = 'planting_status_id=eq.' . (int) $statusId;
