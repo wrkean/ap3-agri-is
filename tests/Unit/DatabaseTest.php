@@ -103,7 +103,7 @@ class DatabaseTest extends TestCase {
             'planting',
             '*,farm(farm_name),crop(variety,species(crop_name)),planting_status(status_name)',
             [],
-            ['limit' => 1],
+            ['limit' => 1, 'order' => 'planting_id.asc'],
         );
         $this->assertIsArray($plantings);
         $this->assertNotEmpty($plantings);
@@ -123,7 +123,7 @@ class DatabaseTest extends TestCase {
             'harvest',
             '*,quality_grade(grade_name),planting(planting_id,farm(farm_name),crop(crop_id,variety))',
             [],
-            ['limit' => 1],
+            ['limit' => 1, 'order' => 'harvest_id.asc'],
         );
         $this->assertIsArray($harvests);
         $this->assertNotEmpty($harvests);

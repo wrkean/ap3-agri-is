@@ -37,19 +37,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if ($errors) {
         flash('error', implode(' ', $errors));
-        header('Location: harvest/index.php' . ($action === 'edit' ? '?action=edit&id=' . $id : '?action=create'));
+        header('Location: /harvest/index.php' . ($action === 'edit' ? '?action=edit&id=' . $id : '?action=create'));
         exit();
     }
     if ($action === 'create') {
         $harvestModel->create($data);
         flash('success', 'Harvest record created.');
-        header('Location: harvest/index.php');
+        header('Location: /harvest/index.php');
         exit();
     }
     if ($action === 'edit' && $id > 0) {
         $harvestModel->update($id, $data);
         flash('success', 'Harvest updated.');
-        header('Location: harvest/index.php');
+        header('Location: /harvest/index.php');
         exit();
     }
 }
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'delete' && $id > 0) {
     $harvestModel->delete($id);
     flash('success', 'Harvest deleted.');
-    header('Location: harvest/index.php');
+    header('Location: /harvest/index.php');
     exit();
 }
 

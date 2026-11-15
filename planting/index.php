@@ -47,19 +47,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if ($errors) {
         flash('error', implode(' ', $errors));
-        header('Location: planting/index.php' . ($action === 'edit' ? '?action=edit&id=' . $id : '?action=create'));
+        header('Location: /planting/index.php' . ($action === 'edit' ? '?action=edit&id=' . $id : '?action=create'));
         exit();
     }
     if ($action === 'create') {
         $plantingModel->create($data);
         flash('success', 'Planting record created.');
-        header('Location: planting/index.php');
+        header('Location: /planting/index.php');
         exit();
     }
     if ($action === 'edit' && $id > 0) {
         $plantingModel->update($id, $data);
         flash('success', 'Planting updated.');
-        header('Location: planting/index.php');
+        header('Location: /planting/index.php');
         exit();
     }
 }
@@ -72,7 +72,7 @@ if ($action === 'delete' && $id > 0) {
         $plantingModel->delete($id);
         flash('success', 'Planting deleted.');
     }
-    header('Location: planting/index.php');
+    header('Location: /planting/index.php');
     exit();
 }
 

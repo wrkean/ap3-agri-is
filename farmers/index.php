@@ -37,19 +37,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($errors) {
         flash('error', implode(' ', $errors));
-        header('Location: farmers/index.php' . ($action === 'edit' ? '?action=edit&id=' . $id : '?action=create'));
+        header('Location: /farmers/index.php' . ($action === 'edit' ? '?action=edit&id=' . $id : '?action=create'));
         exit();
     }
 
     if ($action === 'create') {
         $farmerModel->create($data);
         flash('success', 'Farmer created successfully.');
-        header('Location: farmers/index.php');
+        header('Location: /farmers/index.php');
         exit();
     } elseif ($action === 'edit' && $id > 0) {
         $farmerModel->update($id, $data);
         flash('success', 'Farmer updated successfully.');
-        header('Location: farmers/index.php');
+        header('Location: /farmers/index.php');
         exit();
     }
 }
@@ -63,7 +63,7 @@ if ($action === 'delete' && $id > 0) {
         $farmerModel->delete($id);
         flash('success', 'Farmer deleted successfully.');
     }
-    header('Location: farmers/index.php');
+    header('Location: /farmers/index.php');
     exit();
 }
 

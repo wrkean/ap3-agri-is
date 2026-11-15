@@ -30,19 +30,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if ($errors) {
         flash('error', implode(' ', $errors));
-        header('Location: crops/index.php' . ($action === 'edit' ? '?action=edit&id=' . $id : '?action=create'));
+        header('Location: /crops/index.php' . ($action === 'edit' ? '?action=edit&id=' . $id : '?action=create'));
         exit();
     }
     if ($action === 'create') {
         $cropModel->create($data);
         flash('success', 'Crop created.');
-        header('Location: crops/index.php');
+        header('Location: /crops/index.php');
         exit();
     }
     if ($action === 'edit' && $id > 0) {
         $cropModel->update($id, $data);
         flash('success', 'Crop updated.');
-        header('Location: crops/index.php');
+        header('Location: /crops/index.php');
         exit();
     }
 }
@@ -55,7 +55,7 @@ if ($action === 'delete' && $id > 0) {
         $cropModel->delete($id);
         flash('success', 'Crop deleted.');
     }
-    header('Location: crops/index.php');
+    header('Location: /crops/index.php');
     exit();
 }
 

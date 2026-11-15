@@ -2,7 +2,7 @@
 require_once __DIR__ . '/includes/auth.php';
 
 if (isLoggedIn()) {
-    header('Location: index.php');
+    header('Location: /index.php');
     exit();
 }
 
