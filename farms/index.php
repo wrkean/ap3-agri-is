@@ -311,7 +311,19 @@ if (!empty($formInput)) {
     <?php if ($total === 0): ?>
         <div class="text-center py-12 text-gray-500">
             <i class="fa-solid fa-seedling text-4xl mb-3 opacity-30"></i>
-            <p>No farms found.</p>
+            <?php if ($search !== '' || $irrFilter > 0): ?>
+                <p class="text-lg font-medium text-gray-700 mb-1">No farms match your filters</p>
+                <p class="text-sm text-gray-500 mb-4">Try adjusting your search or irrigation type filter.</p>
+                <a href="index.php" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition">
+                    <i class="fa-solid fa-xmark"></i> Clear Filters
+                </a>
+            <?php else: ?>
+                <p class="text-lg font-medium text-gray-700 mb-1">No farms yet</p>
+                <p class="text-sm text-gray-500 mb-4">Register a farm to start tracking crops and plantings. Each farm belongs to a farmer.</p>
+                <a href="index.php?action=create" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">
+                    <i class="fa-solid fa-plus"></i> Add First Farm
+                </a>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 <?php endif; ?>

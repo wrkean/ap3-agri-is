@@ -73,6 +73,26 @@ $pageTitle = 'Dashboard';
     </div>
 </div>
 
+<!-- Getting started (shown when no data exists yet) -->
+<?php if ($counts['farmers'] === 0): ?>
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6 fade-in">
+    <h3 class="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+        <i class="fa-solid fa-rocket text-blue-600"></i> Getting Started
+    </h3>
+    <p class="text-sm text-blue-800 mb-3">Welcome! Follow these steps to set up your agriculture data:</p>
+    <ol class="list-decimal list-inside text-sm text-blue-800 space-y-1 mb-4">
+        <li><strong>Add Farmers</strong> — Register the farmers in your area</li>
+        <li><strong>Add Farms</strong> — Create farm records linked to farmers</li>
+        <li><strong>Add Crops</strong> — Define crop varieties and growing periods</li>
+        <li><strong>Record Plantings</strong> — Track what was planted, where, and when</li>
+        <li><strong>Record Harvests</strong> — Log harvest quantities and selling prices</li>
+    </ol>
+    <a href="/farmers/index.php?action=create" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+        <i class="fa-solid fa-plus"></i> Add Your First Farmer
+    </a>
+</div>
+<?php endif; ?>
+
 <!-- Total Harvested Quantity + Status Chart -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 fade-in">
     <div class="bg-white p-6 rounded-lg border border-gray-200">

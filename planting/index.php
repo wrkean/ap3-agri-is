@@ -173,6 +173,7 @@ if (!empty($formInput)) {
                         <input type="date" name="expected_harvest_date" required value="<?php echo e(
                             $editRow['expected_harvest_date'] ?? ($_POST['expected_harvest_date'] ?? ''),
                         ); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
+                        <p class="text-xs text-gray-500 mt-1"><i class="fa-solid fa-info-circle"></i> Must be on or after the planting date.</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -341,7 +342,19 @@ if (!empty($formInput)) {
     <?php if ($total === 0): ?>
         <div class="text-center py-12 text-gray-500">
             <i class="fa-solid fa-calendar-check text-4xl mb-3 opacity-30"></i>
-            <p>No planting records found.</p>
+            <?php if ($search !== '' || $statusFilter > 0 || $farmFilter > 0): ?>
+                <p class="text-lg font-medium text-gray-700 mb-1">No planting records match your filters</p>
+                <p class="text-sm text-gray-500 mb-4">Try adjusting your search, status, or farm filter.</p>
+                <a href="index.php" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition">
+                    <i class="fa-solid fa-xmark"></i> Clear Filters
+                </a>
+            <?php else: ?>
+                <p class="text-lg font-medium text-gray-700 mb-1">No planting records yet</p>
+                <p class="text-sm text-gray-500 mb-4">Record a planting to start tracking crop cycles. You need at least one farm and one crop first.</p>
+                <a href="index.php?action=create" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">
+                    <i class="fa-solid fa-plus"></i> Add First Planting
+                </a>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 <?php endif; ?>
