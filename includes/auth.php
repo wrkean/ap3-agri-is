@@ -2,8 +2,9 @@
 /**
  * Simple session-based authentication for the Agriculture Information System.
  *
- * Demo users are defined below. In production, validate against a `users` table
- * in Supabase with password_hash()/password_verify().
+ * Users are validated against the `users` table in Supabase
+ * (password_hash()/password_verify()). Falls back to demo accounts if the
+ * table is unavailable.
  *
  * Roles: administrator, staff
  */
@@ -14,22 +15,49 @@ function getUsers(): array
 {
     static $users = null;
     if ($users === null) {
-        $users = [
-            [
-                'id' => 1,
-                'email' => 'admin@example.com',
-                'password' => password_hash('admin123', PASSWORD_DEFAULT),
-                'role' => 'administrator',
-                'name' => 'System Administrator',
-            ],
-            [
-                'id' => 2,
-                'email' => 'staff@example.com',
-                'password' => password_hash('staff123', PASSWORD_DEFAULT),
-                'role' => 'staff',
-                'name' => 'Staff User',
-            ],
-        ];
+        $users = [];
+        // Validate against the `users` table in Supabase when available.
+        try {
+            if (!class_exists('Database')) {
+                require_once __DIR__ . '/Database.php';
+            }
+            if (class_exists('Database')) {
+                $db = new Database();
+                $rows = $db->select('users', '*');
+                if (is_array($rows)) {
+                    foreach ($rows as $r) {
+                        $users[] = [
+                            'id' => $r['user_id'] ?? ($r['id'] ?? null),
+                            'email' => $r['email'] ?? '',
+                            'password' => $r['password_hash'] ?? ($r['password'] ?? ''),
+                            'role' => $r['role'] ?? '',
+                            'name' => $r['full_name'] ?? ($r['name'] ?? ''),
+                        ];
+                    }
+                }
+            }
+        } catch (Throwable $e) {
+            $users = [];
+        }
+        // Fallback demo accounts if the database is unavailable or empty.
+        if (empty($users)) {
+            $users = [
+                [
+                    'id' => 1,
+                    'email' => 'admin@example.com',
+                    'password' => password_hash('admin123', PASSWORD_DEFAULT),
+                    'role' => 'administrator',
+                    'name' => 'System Administrator',
+                ],
+                [
+                    'id' => 2,
+                    'email' => 'staff@example.com',
+                    'password' => password_hash('staff123', PASSWORD_DEFAULT),
+                    'role' => 'staff',
+                    'name' => 'Staff User',
+                ],
+            ];
+        }
     }
     return $users;
 }
