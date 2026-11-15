@@ -117,7 +117,7 @@ function requireAdmin(): void
 {
     requireAuth();
     if (!isAdmin()) {
-        $_SESSION['error'] = 'Administrator access required.';
+        flash('error', 'Administrator access required.');
         header('Location: /index.php');
         exit();
     }
