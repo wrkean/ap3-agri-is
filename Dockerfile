@@ -1,8 +1,6 @@
 FROM php:8.2-apache
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo pdo_pgsql curl mbstring
-
+# curl and mbstring are already included in the base image
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
