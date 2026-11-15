@@ -11,6 +11,12 @@ $action = $_GET['action'] ?? 'list';
 $id = (int) ($_GET['id'] ?? 0);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!validateCsrf()) {
+        flash('error', 'Invalid security token. Please try again.');
+        header('Location: /harvest/index.php' . ($action === 'edit' ? '?action=edit&id=' . $id : '?action=create'));
+        exit();
+    }
+
     $data = [
         'planting_id' => (int) ($_POST['planting_id'] ?? 0),
         'harvest_date' => trim($_POST['harvest_date'] ?? ''),
@@ -36,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Quality grade is required.';
     }
     if ($errors) {
+        storeFormInput($data);
         flash('error', implode(' ', $errors));
         header('Location: /harvest/index.php' . ($action === 'edit' ? '?action=edit&id=' . $id : '?action=create'));
         exit();
@@ -98,6 +105,11 @@ $editRow = null;
 if ($action === 'edit' && $id > 0) {
     $editRow = $harvestModel->find($id);
 }
+
+$formInput = getFormInput();
+if (!empty($formInput)) {
+    $editRow = array_merge($editRow ?? [], $formInput);
+}
 ?>
 <?php if ($action === 'create' || $action === 'edit'): ?>
     <div class="max-w-xl fade-in">
@@ -110,6 +122,7 @@ if ($action === 'edit' && $id > 0) {
             echo $id > 0 ? '&id=' . $id : '';
             ?>" class="space-y-4">
                 <input type="hidden" name="action" value="<?php echo $action; ?>">
+                <input type="hidden" name="csrf_token" value="<?php echo csrfToken(); ?>">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Planting Record <span class="text-red-500">*</span></label>
                     <select name="planting_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">

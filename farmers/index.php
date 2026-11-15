@@ -14,6 +14,12 @@ $validationError = getFlash('error');
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!validateCsrf()) {
+        flash('error', 'Invalid security token. Please try again.');
+        header('Location: /farmers/index.php' . ($action === 'edit' ? '?action=edit&id=' . $id : '?action=create'));
+        exit();
+    }
+
     $data = [
         'first_name' => trim($_POST['first_name'] ?? ''),
         'last_name' => trim($_POST['last_name'] ?? ''),
@@ -36,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($errors) {
+        storeFormInput($data);
         flash('error', implode(' ', $errors));
         header('Location: /farmers/index.php' . ($action === 'edit' ? '?action=edit&id=' . $id : '?action=create'));
         exit();
@@ -103,6 +110,12 @@ $editRow = null;
 if ($action === 'edit' && $id > 0) {
     $editRow = $farmerModel->find($id);
 }
+
+// Repopulate from stored form input (after validation error redirect)
+$formInput = getFormInput();
+if (!empty($formInput)) {
+    $editRow = array_merge($editRow ?? [], $formInput);
+}
 ?>
 <?php if ($action === 'create' || $action === 'edit'): ?>
     <div class="max-w-lg fade-in">
@@ -115,6 +128,7 @@ if ($action === 'edit' && $id > 0) {
             echo $id > 0 ? '&id=' . $id : '';
             ?>" class="space-y-4">
                 <input type="hidden" name="action" value="<?php echo $action; ?>">
+                <input type="hidden" name="csrf_token" value="<?php echo csrfToken(); ?>">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">First Name <span class="text-red-500">*</span></label>

@@ -117,6 +117,44 @@ function flash(string $key, string $message): void
     $_SESSION['flash_' . $key] = $message;
 }
 
+/**
+ * Generate (or reuse) a CSRF token for the current session.
+ */
+function csrfToken(): string
+{
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Validate a CSRF token from POST data. Returns true on success.
+ */
+function validateCsrf(): bool
+{
+    $token = $_POST['csrf_token'] ?? '';
+    return !empty($token) && hash_equals($_SESSION['csrf_token'] ?? '', $token);
+}
+
+/**
+ * Store form input in session so it can be repopulated after a validation error.
+ */
+function storeFormInput(array $data): void
+{
+    $_SESSION['form_input'] = $data;
+}
+
+/**
+ * Retrieve and clear stored form input (for repopulation after validation error).
+ */
+function getFormInput(): array
+{
+    $data = $_SESSION['form_input'] ?? [];
+    unset($_SESSION['form_input']);
+    return is_array($data) ? $data : [];
+}
+
 function getFlash(string $key): ?string
 {
     $val = $_SESSION['flash_' . $key] ?? null;
