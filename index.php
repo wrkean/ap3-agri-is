@@ -189,34 +189,7 @@ $pageTitle = 'Dashboard';
     </div>
 </div>
 
-<!-- Quick actions (collapsible) -->
-<details class="mb-8 fade-in group">
-    <summary class="cursor-pointer select-none flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-3">
-        <i class="fa-solid fa-bolt text-amber-500"></i> Quick Actions
-        <i class="fa-solid fa-chevron-down text-xs text-gray-400 group-open:rotate-180 transition-transform"></i>
-    </summary>
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <?php
-        $shortcuts = [
-            ['href' => '/farmers/index.php', 'icon' => 'fa-users', 'color' => 'bg-blue-100 text-blue-600', 'label' => 'Farmers'],
-            ['href' => '/farms/index.php', 'icon' => 'fa-seedling', 'color' => 'bg-purple-100 text-purple-600', 'label' => 'Farms'],
-            ['href' => '/crops/index.php', 'icon' => 'fa-carrot', 'color' => 'bg-green-100 text-green-600', 'label' => 'Crops'],
-            ['href' => '/planting/index.php', 'icon' => 'fa-calendar-check', 'color' => 'bg-orange-100 text-orange-600', 'label' => 'Planting'],
-            ['href' => '/harvest/index.php', 'icon' => 'fa-wheat-awn', 'color' => 'bg-red-100 text-red-600', 'label' => 'Harvest'],
-        ];
-        if (isAdmin()) {
-            $shortcuts[] = ['href' => '/reports/index.php', 'icon' => 'fa-chart-bar', 'color' => 'bg-indigo-100 text-indigo-600', 'label' => 'Reports'];
-        }
-        foreach ($shortcuts as $s): ?>
-            <a href="<?php echo $s['href']; ?>" class="flex flex-col items-center gap-1.5 p-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition text-center">
-                <div class="<?php echo $s['color']; ?> w-9 h-9 rounded-lg flex items-center justify-center">
-                    <i class="fa-solid <?php echo $s['icon']; ?>"></i>
-                </div>
-                <span class="text-xs font-medium text-gray-700"><?php echo $s['label']; ?></span>
-            </a>
-        <?php endforeach; ?>
-    </div>
-</details>
+<!-- Quick actions removed — navigation is already available in the header nav bar -->
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
 
