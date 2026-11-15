@@ -46,6 +46,28 @@ $flashConfig = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($pageTitle ?? 'Agriculture Information System'); ?></title>
+    <!-- Preconnect to external origins to reduce connection setup time -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <?php
+    // Preconnect to Supabase if configured (reduces DNS/TCP/TLS latency)
+    $sbUrl = getenv('SUPABASE_URL') ?: '';
+    if (empty($sbUrl) && file_exists(__DIR__ . '/../.env')) {
+        foreach (file(__DIR__ . '/../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+            $line = trim($line);
+            if (strpos($line, '#') === 0 || strpos($line, '=') === false) continue;
+            [$k, $v] = explode('=', $line, 2);
+            if (trim($k) === 'SUPABASE_URL') {
+                $sbUrl = trim($v);
+                break;
+            }
+        }
+    }
+    if (!empty($sbUrl) && strpos($sbUrl, 'your-project') === false) {
+        echo '<link rel="preconnect" href="' . htmlspecialchars($sbUrl) . '">';
+        echo '<link rel="dns-prefetch" href="' . htmlspecialchars($sbUrl) . '">';
+    }
+    ?>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>

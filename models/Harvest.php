@@ -25,7 +25,7 @@ class Harvest
             $options,
         );
         if (empty($filters) && empty($options)) {
-            $cache->set('harvest:all', $rows, 300);
+            $cache->set("harvest:all", $rows, 1800);
         }
         return $rows;
     }
@@ -107,7 +107,7 @@ class Harvest
             'value' => $value,
             'average_price' => $quantity > 0 ? $value / $quantity : 0.0,
         ];
-        $cache->set('harvest:stats', $result, 120);
+        $cache->set("harvest:stats", $result, 600);
         return $result;
     }
 }

@@ -296,6 +296,7 @@ $pageTitle = 'Dashboard';
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
     const statusData = <?php echo json_encode($plantingStatus); ?>;
     const ctx = document.getElementById('statusChart').getContext('2d');

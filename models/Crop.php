@@ -30,7 +30,7 @@ class Crop
             $options,
         );
         if (empty($filters) && empty($options)) {
-            $cache->set('crop:all', $rows, 300);
+            $cache->set("crop:all", $rows, 1800);
         }
         return $rows;
     }

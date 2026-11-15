@@ -17,7 +17,7 @@ class Farmer {
         }
         $rows = $this->db->select('farmer', '*', $filters, $options);
         if (empty($filters) && empty($options)) {
-            $cache->set('farmer:all', $rows, 300);
+            $cache->set("farmer:all", $rows, 1800);
         }
         return $rows;
     }

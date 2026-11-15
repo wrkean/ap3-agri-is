@@ -25,7 +25,7 @@ class Farm
             $options,
         );
         if (empty($filters) && empty($options)) {
-            $cache->set('farm:all', $rows, 300);
+            $cache->set("farm:all", $rows, 1800);
         }
         return $rows;
     }

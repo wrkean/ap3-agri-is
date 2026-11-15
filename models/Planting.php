@@ -25,7 +25,7 @@ class Planting
             $options,
         );
         if (empty($filters) && empty($options)) {
-            $cache->set('planting:all', $rows, 300);
+            $cache->set("planting:all", $rows, 1800);
         }
         return $rows;
     }
@@ -95,7 +95,7 @@ class Planting
         foreach ($counts as $id => $count) {
             $result[] = ['planting_status_id' => $id, 'count' => $count];
         }
-        $cache->set('planting:byStatus', $result, 120);
+        $cache->set("planting:byStatus", $result, 600);
         return $result;
     }
 }
