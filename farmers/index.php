@@ -56,9 +56,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors = [];
     if (empty($data['first_name'])) {
         $errors[] = 'First name is required.';
+    } elseif (!isValidName($data['first_name'])) {
+        $errors[] = 'First name contains invalid characters.';
     }
     if (empty($data['last_name'])) {
         $errors[] = 'Last name is required.';
+    } elseif (!isValidName($data['last_name'])) {
+        $errors[] = 'Last name contains invalid characters.';
+    }
+    if (!isValidContact($data['contact_number'])) {
+        $errors[] = 'Contact number contains invalid characters.';
+    }
+    if (!isValidAddress($data['address'])) {
+        $errors[] = 'Address contains invalid characters.';
     }
     if (empty($data['date_registered'])) {
         $errors[] = 'Date registered is required.';
@@ -157,20 +167,20 @@ if (!empty($formInput)) {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">First Name <span class="text-red-500">*</span></label>
-                        <input type="text" name="first_name" required value="<?php echo e(
+                        <input type="text" name="first_name" required pattern="[A-Za-zÀ-ÿ\s'.\-]+" title="Letters, spaces, apostrophes, hyphens and dots only." value="<?php echo e(
                             $editRow['first_name'] ?? ($_POST['first_name'] ?? ''),
                         ); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Last Name <span class="text-red-500">*</span></label>
-                        <input type="text" name="last_name" required value="<?php echo e(
+                        <input type="text" name="last_name" required pattern="[A-Za-zÀ-ÿ\s'.\-]+" title="Letters, spaces, apostrophes, hyphens and dots only." value="<?php echo e(
                             $editRow['last_name'] ?? ($_POST['last_name'] ?? ''),
                         ); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
                     </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
-                    <input type="tel" name="contact_number" value="<?php echo e(
+                    <input type="tel" name="contact_number" pattern="[\d\s+\-().]*" title="Digits, spaces, +, -, (, ) only." value="<?php echo e(
                         $editRow['contact_number'] ?? ($_POST['contact_number'] ?? ''),
                     ); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none" placeholder="09171234567">
                 </div>

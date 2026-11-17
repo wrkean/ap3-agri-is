@@ -52,6 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if (empty($data['variety'])) {
         $errors[] = 'Variety is required.';
+    } elseif (!isValidAddress($data['variety'])) {
+        $errors[] = 'Variety contains invalid characters.';
     }
     if ($data['growing_period_days'] <= 0) {
         $errors[] = 'Growing period (days) must be greater than 0.';
@@ -170,7 +172,7 @@ if (!empty($formInput)) {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Variety <span class="text-red-500">*</span></label>
-                    <input type="text" name="variety" required value="<?php echo e(
+                    <input type="text" name="variety" required pattern="[A-Za-z0-9\s.,#\-/()]+" title="Letters, digits, spaces and common punctuation only." value="<?php echo e(
                         $editRow['variety'] ?? ($_POST['variety'] ?? ''),
                     ); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
                 </div>

@@ -70,6 +70,33 @@ function isValidDate(string $d): bool
 }
 
 /**
+ * Validate free-text "name" fields: letters, spaces, apostrophes, hyphens, dots only.
+ * Empty string is allowed (caller handles required checks).
+ */
+function isValidName(string $s): bool
+{
+    return $s === '' || (bool) preg_match('/^[A-Za-z\s\'\.\-]+$/', $s);
+}
+
+/**
+ * Validate address-like free text: ASCII letters, digits, spaces and common punctuation.
+ * Empty string is allowed (caller handles required checks).
+ */
+function isValidAddress(string $s): bool
+{
+    return $s === '' || (bool) preg_match('/^[A-Za-z0-9\s.,#\-\/()]+$/', $s);
+}
+
+/**
+ * Validate contact numbers: digits, spaces, +, -, (, ).
+ * Empty string is allowed (optional field).
+ */
+function isValidContact(string $s): bool
+{
+    return $s === '' || (bool) preg_match('/^[\d\s+\-().]+$/', $s);
+}
+
+/**
  * Whitelist a sort column from user input; fall back to $default.
  */
 function whitelistSort(string $sort, array $allowed, string $default): string

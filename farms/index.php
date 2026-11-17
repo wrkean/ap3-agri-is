@@ -56,9 +56,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if (empty($data['farm_name'])) {
         $errors[] = 'Farm name is required.';
+    } elseif (!isValidAddress($data['farm_name'])) {
+        $errors[] = 'Farm name contains invalid characters.';
     }
     if (empty($data['location'])) {
         $errors[] = 'Location is required.';
+    } elseif (!isValidAddress($data['location'])) {
+        $errors[] = 'Location contains invalid characters.';
     }
     if (!is_numeric($data['area_hectares']) || $data['area_hectares'] <= 0) {
         $errors[] = 'Area must be a positive number.';
@@ -174,14 +178,14 @@ if (!empty($formInput)) {
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Farm Name <span class="text-red-500">*</span></label>
-                        <input type="text" name="farm_name" required value="<?php echo e(
+                        <input type="text" name="farm_name" required pattern="[A-Za-z0-9\s.,#\-/()]+" title="Letters, digits, spaces and common punctuation only." value="<?php echo e(
                             $editRow['farm_name'] ?? ($_POST['farm_name'] ?? ''),
                         ); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
                     </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Location <span class="text-red-500">*</span></label>
-                    <input type="text" name="location" required value="<?php echo e(
+                    <input type="text" name="location" required pattern="[A-Za-z0-9\s.,#\-/()]+" title="Letters, digits, spaces and common punctuation only." value="<?php echo e(
                         $editRow['location'] ?? ($_POST['location'] ?? ''),
                     ); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none">
                 </div>
