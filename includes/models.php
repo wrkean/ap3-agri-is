@@ -5,3 +5,4 @@ require_once __DIR__ . '/../models/Farm.php';
 require_once __DIR__ . '/../models/Crop.php';
 require_once __DIR__ . '/../models/Planting.php';
 require_once __DIR__ . '/../models/Harvest.php';
+require_once __DIR__ . '/../models/User.php';

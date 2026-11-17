@@ -21,19 +21,16 @@ function getUserByEmail(string $email): ?array
         if (!class_exists('Database')) {
             require_once __DIR__ . '/Database.php';
         }
+        if (!class_exists('User')) {
+            require_once __DIR__ . '/../models/User.php';
+        }
         $db = new Database(true); // service key; server-only users lookup
-        $rows = $db->select('users', '*', ['email' => 'eq.' . rawurlencode($email)], ['limit' => 1]);
-        $row = is_array($rows) ? ($rows[0] ?? null) : null;
+        $userModel = new User($db);
+        $row = $userModel->findByEmail($email);
         if (!is_array($row)) {
             return null;
         }
-        return [
-            'id' => $row['user_id'] ?? ($row['id'] ?? null),
-            'email' => $row['email'] ?? '',
-            'password' => $row['password_hash'] ?? ($row['password'] ?? ''),
-            'role' => $row['role'] ?? '',
-            'name' => $row['full_name'] ?? ($row['name'] ?? ''),
-        ];
+        return $userModel->normalize($row);
     } catch (Throwable $e) {
         error_log('auth: users lookup failed: ' . $e->getMessage());
         return null;
