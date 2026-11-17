@@ -1,71 +1,11 @@
 <?php
 // models/Crop.php
-class Crop
+require_once __DIR__ . '/Model.php';
+class Crop extends Model
 {
-    private Database $db;
-
-    public function __construct(Database $db)
-    {
-        $this->db = $db;
-    }
-
-    /**
-     * Crop varieties with their species, category and season labels.
-     * The nested select is resolved natively by Supabase/PostgREST.
-     */
-    public function all(array $filters = [], array $options = []): array
-    {
-        $cache = new Cache();
-        // Only cache unfiltered list queries.
-        if (empty($filters) && empty($options)) {
-            $cached = $cache->get('crop:all');
-            if ($cached !== null) {
-                return $cached;
-            }
-        }
-        $rows = $this->db->select(
-            'crop',
-            '*,species(crop_name,crop_category(category_name)),season(season_name)',
-            $filters,
-            $options,
-        );
-        if (empty($filters) && empty($options)) {
-            $cache->set("crop:all", $rows, 1800);
-        }
-        return $rows;
-    }
-
-    public function find(int $id): ?array
-    {
-        return $this->db->find('crop', $id, 'crop_id');
-    }
-
-    public function create(array $data): ?array
-    {
-        $result = $this->db->insert('crop', $data);
-        if ($result !== null) {
-            (new Cache())->flush();
-        }
-        return $result;
-    }
-
-    public function update(int $id, array $data): ?array
-    {
-        $result = $this->db->update('crop', $data, ['crop_id=eq.' . $id]);
-        if ($result !== null) {
-            (new Cache())->flush();
-        }
-        return $result;
-    }
-
-    public function delete(int $id): ?array
-    {
-        $result = $this->db->delete('crop', ['crop_id=eq.' . $id]);
-        if ($result !== null) {
-            (new Cache())->flush();
-        }
-        return $result;
-    }
+    protected string $table = 'crop';
+    protected string $primaryKey = 'crop_id';
+    protected string $columns = '*,species(crop_name,crop_category(category_name)),season(season_name)';
 
     /**
      * Search by variety or species name, optionally filtered by category
@@ -126,10 +66,5 @@ class Crop
             $labels[(int) $row['crop_id']] = trim($species . ' — ' . ($row['variety'] ?? ''), ' —');
         }
         return $labels;
-    }
-
-    public function count(): int
-    {
-        return count($this->db->select('crop', 'crop_id'));
     }
 }

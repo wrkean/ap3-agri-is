@@ -1,66 +1,11 @@
 <?php
 // models/Harvest.php
-class Harvest
+require_once __DIR__ . '/Model.php';
+class Harvest extends Model
 {
-    private Database $db;
-
-    public function __construct(Database $db)
-    {
-        $this->db = $db;
-    }
-
-    public function all(array $filters = [], array $options = []): array
-    {
-        $cache = new Cache();
-        if (empty($filters) && empty($options)) {
-            $cached = $cache->get('harvest:all');
-            if ($cached !== null) {
-                return $cached;
-            }
-        }
-        $rows = $this->db->select(
-            'harvest',
-            '*,quality_grade(grade_name),planting(farm(farm_name),crop(crop_id,variety))',
-            $filters,
-            $options,
-        );
-        if (empty($filters) && empty($options)) {
-            $cache->set("harvest:all", $rows, 1800);
-        }
-        return $rows;
-    }
-
-    public function find(int $id): ?array
-    {
-        return $this->db->find('harvest', $id, 'harvest_id');
-    }
-
-    public function create(array $data): ?array
-    {
-        $result = $this->db->insert('harvest', $data);
-        if ($result !== null) {
-            (new Cache())->flush();
-        }
-        return $result;
-    }
-
-    public function update(int $id, array $data): ?array
-    {
-        $result = $this->db->update('harvest', $data, ['harvest_id=eq.' . $id]);
-        if ($result !== null) {
-            (new Cache())->flush();
-        }
-        return $result;
-    }
-
-    public function delete(int $id): ?array
-    {
-        $result = $this->db->delete('harvest', ['harvest_id=eq.' . $id]);
-        if ($result !== null) {
-            (new Cache())->flush();
-        }
-        return $result;
-    }
+    protected string $table = 'harvest';
+    protected string $primaryKey = 'harvest_id';
+    protected string $columns = '*,quality_grade(grade_name),planting(farm(farm_name),crop(crop_id,variety))';
 
     /**
      * Search by quality grade label. The lookup is resolved to IDs first so
@@ -80,11 +25,6 @@ class Harvest
             $filters[] = 'quality_grade_id=eq.' . (int) $gradeId;
         }
         return $this->all($filters);
-    }
-
-    public function count(): int
-    {
-        return count($this->db->select('harvest', 'harvest_id'));
     }
 
     public function totalQuantity(): float
@@ -113,7 +53,7 @@ class Harvest
             'value' => $value,
             'average_price' => $quantity > 0 ? $value / $quantity : 0.0,
         ];
-        $cache->set("harvest:stats", $result, 600);
+        $cache->set('harvest:stats', $result, 600);
         return $result;
     }
 }

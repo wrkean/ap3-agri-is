@@ -1,34 +1,11 @@
 <?php
 // models/User.php
-class User
+require_once __DIR__ . '/Model.php';
+class User extends Model
 {
-    private Database $db;
-
-    public function __construct(Database $db)
-    {
-        $this->db = $db;
-    }
-
-    public function all(array $filters = [], array $options = []): array
-    {
-        $cache = new Cache();
-        if (empty($filters) && empty($options)) {
-            $cached = $cache->get('user:all');
-            if ($cached !== null) {
-                return $cached;
-            }
-        }
-        $rows = $this->db->select('users', '*', $filters, $options);
-        if (empty($filters) && empty($options)) {
-            $cache->set('user:all', $rows, 1800);
-        }
-        return $rows;
-    }
-
-    public function find(int $id): ?array
-    {
-        return $this->db->find('users', $id, 'user_id');
-    }
+    protected string $table = 'users';
+    protected string $primaryKey = 'user_id';
+    protected string $columns = '*';
 
     public function findByEmail(string $email): ?array
     {
@@ -47,33 +24,6 @@ class User
         return $this->findByEmail($email);
     }
 
-    public function create(array $data): ?array
-    {
-        $result = $this->db->insert('users', $data);
-        if ($result !== null) {
-            (new Cache())->flush();
-        }
-        return $result;
-    }
-
-    public function update(int $id, array $data): ?array
-    {
-        $result = $this->db->update('users', $data, ['user_id=eq.' . $id]);
-        if ($result !== null) {
-            (new Cache())->flush();
-        }
-        return $result;
-    }
-
-    public function delete(int $id): ?array
-    {
-        $result = $this->db->delete('users', ['user_id=eq.' . $id]);
-        if ($result !== null) {
-            (new Cache())->flush();
-        }
-        return $result;
-    }
-
     public function search(string $term): array
     {
         $filters = [];
@@ -85,11 +35,6 @@ class User
             $filters[] = 'or=(email.ilike.%25' . $w . '%25,full_name.ilike.%25' . $w . '%25)';
         }
         return $this->all($filters);
-    }
-
-    public function count(): int
-    {
-        return count($this->db->select('users', 'user_id'));
     }
 
     /**
